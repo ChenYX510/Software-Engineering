@@ -69,6 +69,20 @@ module.exports = {
         deleteOriginalAssets: false                    // 压缩后删除原文件
       })
     ],
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env']
+            }
+          }
+        }
+      ]
+    },
   },
   chainWebpack(config) {
     config.plugins.delete('preload') // TODO: need test

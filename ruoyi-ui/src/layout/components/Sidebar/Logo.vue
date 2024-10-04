@@ -35,8 +35,8 @@ export default {
   },
   data() {
     return {
-      title: process.env.VUE_APP_TITLE,
-      logo: logoImg
+      title: '传染病和人群模拟系统',
+      logo: ''
     }
   }
 }

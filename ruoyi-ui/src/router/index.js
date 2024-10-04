@@ -161,6 +161,12 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
+  },
+  {
+    path: '/application/simulationinfection',
+    name: 'simulationinfection',
+    component: () => import('@/views/application/simulationinfection/index.vue'),
+    meta: { title: '传染病实查', icon: 'tool' }
   }
 ]
 
