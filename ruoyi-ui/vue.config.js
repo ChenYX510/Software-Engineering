@@ -55,34 +55,18 @@ module.exports = {
     name: name,
     resolve: {
       alias: {
-        '@': resolve('src')
-      }
+        "@": resolve("src"),
+      },
     },
     plugins: [
       // http://doc.ruoyi.vip/ruoyi-vue/other/faq.html#使用gzip解压缩静态文件
       new CompressionPlugin({
-        cache: false,                                  // 不启用文件缓存
-        test: /\.(js|css|html|jpe?g|png|gif|svg)?$/i,  // 压缩文件格式
-        filename: '[path][base].gz[query]',            // 压缩后的文件名
-        algorithm: 'gzip',                             // 使用gzip压缩
-        minRatio: 0.8,                                 // 压缩比例，小于 80% 的文件不会被压缩
-        deleteOriginalAssets: false                    // 压缩后删除原文件
-      })
+        test: /\.(js|css|html)?$/i, // 压缩文件格式
+        filename: "[path].gz[query]", // 压缩后的文件名
+        algorithm: "gzip", // 使用gzip压缩
+        minRatio: 0.8, // 压缩率小于1才会压缩
+      }),
     ],
-    module: {
-      rules: [
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use: {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/preset-env']
-            }
-          }
-        }
-      ]
-    },
   },
   chainWebpack(config) {
     config.plugins.delete('preload') // TODO: need test
