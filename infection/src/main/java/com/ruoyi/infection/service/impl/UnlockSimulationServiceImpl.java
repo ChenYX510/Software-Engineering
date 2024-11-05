@@ -1,6 +1,7 @@
 package com.ruoyi.infection.service.impl;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.ruoyi.infection.domain.UnlockSimulation;
 import com.ruoyi.infection.mapper.UnlockInfectionMapper;
 import com.ruoyi.infection.service.IUnlockSimulationService;
@@ -14,52 +15,54 @@ import java.util.*;
 
 @Service
 public class UnlockSimulationServiceImpl implements IUnlockSimulationService {
-    private static final String ROOT_DIR = "./GuangZhou_simulation/result/";
+    private static final String ROOT_FILE_PATH = System.getProperty("user.dir") + "\\testUser\\";
+    private final UnlockInfectionMapper unlockInfectionMapper;
+    private final Gson gson = new Gson();
 
     @Autowired
-    private UnlockInfectionMapper unlockInfectionMapper;
+    public UnlockSimulationServiceImpl(UnlockInfectionMapper unlockInfectionMapper) {
+        this.unlockInfectionMapper = unlockInfectionMapper;
+    }
 
     @Override
-    public List<Map<String, Object>> getCitySimulationResult() {
-        List<String> cityNames = Arrays.asList("shanghai", "chongqing", "guangzhou", "wulumuqi", "ningbo", "dongying", "weihai", "zibo", "lianyungang", "wuxi", "ezhou", "sihui");
-        List<Map<String, Object>> cityResults = new ArrayList<>();
+    public List<UnlockSimulation> getSimulationResultsByUserId(Long userId) {
+        return unlockInfectionMapper.selectSimulationResultsByUserId(userId);
+    }
 
-        for (String city : cityNames) {
-            String cityDir = ROOT_DIR + city;
-            File directory = new File(cityDir);
-            Map<String, Object> cityData = new HashMap<>();
-            int numRecords = directory.exists() ? Objects.requireNonNull(directory.list()).length : 0;
+    @Override
+    public String inquireCitySimulationResult(Long userId) {
+        Map<String, Object> dataJson = new HashMap<>();
+        Map<String, Object> cityJson = new HashMap<>();
+        List<Map<String, Object>> jsonFileList = new ArrayList<>();
+        List<UnlockSimulation> resultList = unlockInfectionMapper.selectSimulationResultsByUserId(userId);
 
-            if (numRecords == 0) {
-                cityData.put("city", city);
-                cityData.put("simulation_record_num", 0);
-            } else {
-                List<Map<String, Object>> recordDetails = new ArrayList<>();
-                List<UnlockSimulation> records = unlockInfectionMapper.getSimulationRecords(city);
+        for (UnlockSimulation resultItem : resultList) {
+            String cityName = resultItem.getCityName();
+            cityJson.put("city", cityName);
+            String fileDirPath = ROOT_FILE_PATH + userId + "\\SimulationResult\\unlock_result\\" + cityName;
+            File dataFile = new File(fileDirPath + "\\data.json");
+            System.out.println(fileDirPath);
+            JsonObject paraJson = new JsonObject();
 
-                for (UnlockSimulation record : records) {
-                    String recordDir = cityDir + "/" + record.getFilepath() + "/";
-                    Map<String, Object> simulationItem = new HashMap<>();
-                    simulationItem.put("simulation_time", record.getFilepath());
-                    simulationItem.put("task_state", record.getState());
-                    File jsonFile = new File(recordDir + "data.json");
-
-                    if (jsonFile.exists()) {
-                        try (FileReader reader = new FileReader(jsonFile)) {
-                            simulationItem.put("para_json", new Gson().fromJson(reader, Map.class));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    recordDetails.add(simulationItem);
+            if (dataFile.exists()) {
+                try (FileReader reader = new FileReader(dataFile)) {
+                    paraJson = gson.fromJson(reader, JsonObject.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                cityData.put("city", city);
-                cityData.put("simulation_record_num", numRecords);
-                cityData.put("simulation_record", recordDetails);
             }
-            cityResults.add(cityData);
+
+            Map<String, Object> simulationItem = new HashMap<>();
+            simulationItem.put("simulation_time", resultItem.getFilepath());
+            simulationItem.put("task_state", resultItem.getState());
+            simulationItem.put("para_json", paraJson);
+            jsonFileList.add(simulationItem);
         }
 
-        return cityResults;
+        cityJson.put("simulation_record", jsonFileList);
+        dataJson.put("msg", "success");
+        dataJson.put("simulation_task", cityJson);
+
+        return gson.toJson(dataJson);
     }
 }

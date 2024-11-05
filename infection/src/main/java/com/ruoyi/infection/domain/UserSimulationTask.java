@@ -3,7 +3,8 @@ package com.ruoyi.infection.domain;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class UnlockSimulation {
+//获取该用户的模拟任务列表
+public class UserSimulationTask {
     private Integer unlockResultId;
     private String filepath;
     private String state;

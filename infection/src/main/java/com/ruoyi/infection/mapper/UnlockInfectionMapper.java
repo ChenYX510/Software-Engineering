@@ -1,8 +1,8 @@
 package com.ruoyi.infection.mapper;
 import java.util.List;
-import java.util.Map;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.infection.domain.UnlockSimulation;
 
 public interface UnlockInfectionMapper {
-    List<UnlockSimulation> getSimulationRecords(String city);
+    List<UnlockSimulation> selectSimulationResultsByUserId(@Param("userId") Long userId);
 }

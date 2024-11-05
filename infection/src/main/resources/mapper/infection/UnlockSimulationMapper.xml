@@ -4,16 +4,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.ruoyi.infection.mapper.UnlockInfectionMapper">
-    <!-- Result Map for UnlockSimulation -->
-    <resultMap type="UnlockSimulation" id="UnlockSimulationResult" >
-        <result property="filepath" column="filepath"/>
-        <result property="state" column="state"/>
-    </resultMap>
 
-    <select id="getSimulationRecords" parameterType="String" resultType="SimulationRecord">
-        SELECT filepath, state
-        FROM simulation_record
-        WHERE city = #{city}
+    <select id="selectSimulationResultsByUserId" resultType="com.ruoyi.infection.domain.UnlockSimulation">
+        SELECT
+        u.unlock_result_id AS unlockResultId,
+        COALESCE(ul.filepath) AS filepath,
+        COALESCE(ul.state) AS state,
+        ul.city_name AS cityName
+        FROM
+        user_simulation_task u
+        LEFT JOIN
+        infection_unlock_simulation_result ul ON u.unlock_result_id = ul.unlock_result_id
+        WHERE
+        u.user_id = #{userId}
     </select>
 
 </mapper>
