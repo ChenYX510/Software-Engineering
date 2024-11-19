@@ -28,7 +28,7 @@ public class UnlockSimulationController {
     public List<UnlockSimulation> getSimulationResultsByUserId(@RequestParam("userId") Long userId) {
         return unlockSimulationService.getSimulationResultsByUserId(userId);
     }
-
+    // 获取传染病模拟任务列表
     @GetMapping("/tasks")
     public String inquireCitySimulationResult(@RequestParam("userId") Long userId) {
         return unlockSimulationService.inquireCitySimulationResult(userId);
