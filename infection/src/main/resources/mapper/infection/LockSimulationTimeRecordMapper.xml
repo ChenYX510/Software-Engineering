@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.infection.mapper.LockSimulationTimeRecordMapper">
+    <select id="selectMaxId" resultType="Integer">
+        SELECT MAX(lock_result_id) FROM infection_lock_simulation_result
+    </select>
+
+    <insert id="insertLockSimulationTimeRecord">
+        INSERT INTO infection_lock_simulation_result (lock_result_id, lock_region_start_time, lock_region_end_time, simulation_end_time, city_name, state)
+        VALUES (#{id}, #{lockRegionStartTime}, #{lockRegionEndTime}, #{simulationEndTime}, #{city}, #{state})
+    </insert>
+</mapper>

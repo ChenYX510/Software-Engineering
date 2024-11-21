@@ -12,7 +12,7 @@
         COALESCE(ul.state) AS state,
         ul.city_name AS cityName
         FROM
-        user_simulation_task u
+        user_infection_simulation_result u
         LEFT JOIN
         infection_unlock_simulation_result ul ON u.unlock_result_id = ul.unlock_result_id
         WHERE
