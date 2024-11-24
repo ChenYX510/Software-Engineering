@@ -1,11 +1,13 @@
 package com.ruoyi.web;
+import com.ruoyi.infection.domain.SimulationRequest;
 import com.ruoyi.infection.service.ILockSimulationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 @SpringBootTest
 public class GetInfectionTest {
 
@@ -13,21 +15,17 @@ public class GetInfectionTest {
     private ILockSimulationService lockSimulationService;
 
     @Test
-    public void testGetLockEveryHourInfection() {
-        String testCity = "Guangzhou";
-        String testSimulationFileName = "latestRecord"; // 或者指定一个测试文件名
+    public void testGetMADDPGSimulationRiskPoint() {
+        // 模拟请求参数
+        SimulationRequest request = new SimulationRequest();
+        request.setCity("Guangzhou");
+        request.setSimulationDay(1);
+        request.setSimulationHour(10);
+        request.setThresholdInfected(50);
+        request.setSimulationFileName("latestRecord");
 
-        // 调用服务层方法查询感染结果
-        List<Double> results = lockSimulationService.getEveryHourInfection(testCity, testSimulationFileName);
+         Map<String, Object> response = lockSimulationService.getMADDPGRiskPoints(request);
 
-        // 输出查询结果
-        if (results != null && !results.isEmpty()) {
-            System.out.println("Infection results for city: " + testCity);
-            for (int i = 0; i < results.size(); i++) {
-                System.out.println("Hour " + i + ": " + results.get(i));
-            }
-        } else {
-            System.out.println("No results found for city: " + testCity);
-        }
+         System.out.println( response);
     }
 }

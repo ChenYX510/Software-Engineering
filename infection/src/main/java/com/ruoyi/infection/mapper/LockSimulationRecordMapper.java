@@ -8,4 +8,8 @@ public interface LockSimulationRecordMapper {
     String selectFilepathById(Long id);
     List<Long> selectIdByCity(String city);
     String selectFilespathById(Long id);
+    List<Long> selectMADDPGIdByCity(String city);
+    String selectMADDPGFilespathById(Long id);
+    Integer getLatestSimulationId(String city);
+    String getFilePathById(Integer id);
 }

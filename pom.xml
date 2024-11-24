@@ -181,6 +181,13 @@
                 <artifactId>ruoyi-common</artifactId>
                 <version>${ruoyi.version}</version>
             </dependency>
+                <!-- ND4J核心库 -->
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-native</artifactId>
+    <version>1.0.0-M2.1</version>
+</dependency>
+
 
 
         </dependencies>
