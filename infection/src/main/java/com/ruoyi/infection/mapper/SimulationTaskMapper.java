@@ -3,35 +3,23 @@ package com.ruoyi.infection.mapper;
 import org.apache.ibatis.annotations.Param;
 
 public interface SimulationTaskMapper {
-    /**
-     * 获取表中当前最大 ID
-     * @param tableName 表名
-     * @return 当前最大 ID
-     */
-    Integer getMaxId(@Param("tableName") String tableName);
+    // 获取 user_infection_simulation_result 表中某用户指定列的最大值
+    Integer getMaxResultId(@Param("userId") long userId,
+                           @Param("resultTable") String resultTable,
+                           @Param("resultColumn") String resultColumn);
 
-    /**
-     * 新增模拟记录
-     * @param tableName 表名
-     * @param id 主键 ID
-     * @param filepath 文件路径
-     * @param city 城市名称
-     * @param state 状态
-     * @return 插入行数
-     */
-    int insertSimulationRecord(@Param("tableName") String tableName,
-                               @Param("id") Integer id,
+    // 在指定的结果表中插入新记录
+    int insertSimulationResult(@Param("resultTable") String resultTable,
+                               @Param("userId") long userId,
+                               @Param("resultId") int resultId,
                                @Param("filepath") String filepath,
-                               @Param("city") String city,
+                               @Param("cityName") String cityName,
                                @Param("state") String state);
-    /**
-     * 更新任务状态
-     * @param tableName 表名
-     * @param state 状态值
-     * @param dirName 文件路径
-     * @return 更新行数
-     */
-    int updateTaskStatus(@Param("tableName") String tableName,
+
+    // 更新指定结果表中记录的状态
+    int updateTaskStatus(@Param("resultTable") String resultTable,
+                         @Param("resultColumn") String resultColumn,
                          @Param("state") String state,
-                         @Param("dirName") String dirName);
+                         @Param("filepath") String filepath,
+                         @Param("resultId") int resultId);
 }

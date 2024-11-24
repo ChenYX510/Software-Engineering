@@ -13,6 +13,7 @@ import java.util.Map;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.io.FileWriter;
+import java.io.Serializable;
 import java.io.BufferedWriter; // 写入文件
 import java.io.FileReader;
 import java.nio.file.Paths;
@@ -27,20 +28,31 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.locationtech.jts.geom.Geometry;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.feature.DefaultTransaction;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.feature.FeatureWriter;
+import org.geotools.data.Transaction;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureCollection;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.Filter;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 
 
 @Service
 public class SimulationTaskServiceImpl implements ISimulationTaskService {
     @Autowired
     private SimulationTaskMapper simulationTaskMapper;
+
     private static final String ROOT_FILE_PATH = System.getProperty("user.dir") + "\\testUser\\";
 
     private static final Logger logger = Logger.getLogger(SimulationTaskServiceImpl.class.getName());
@@ -49,6 +61,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
     @Override
     public Map<String, Object> unlockSimulationTask(SimulationTask request) {
+        Long userId = request.getUserId();
         String simulationCity = request.getSimulationCity();
 
         double R0 = request.getR0();
@@ -57,7 +70,8 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
         double H_R_para = request.getH_R_para();
         String I_input = request.getI_input();
         String region_list = request.getRegionList();
-        int simulation_days = request.getSimulationDays();;
+        int simulation_days = request.getSimulationDays();
+        ;
         String simulation_city = request.getSimulationCity();
 
         // 移除转义字符，得到有效的 JSON 格式
@@ -67,10 +81,10 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
         // 检查所需文件是否存在
         String msg = "start simulate";
-        System.out.println(ROOT_FILE_PATH  + "1\\" + simulationCity + "\\city.shp");
-        if (!new File(ROOT_FILE_PATH  + "\\1\\" + simulationCity + "\\city.shp").exists()) {
+        System.out.println(ROOT_FILE_PATH + userId + "\\" + simulationCity + "\\city.shp");
+        if (!new File(ROOT_FILE_PATH + userId + "\\" + simulationCity + "\\city.shp").exists()) {
             msg = "缺少网格文件";
-        } else if (!new File(ROOT_FILE_PATH  + "\\1\\" + simulationCity + "\\population.npy").exists()) {
+        } else if (!new File(ROOT_FILE_PATH + userId + "\\" + simulationCity + "\\population.npy").exists()) {
             msg = "缺少人口文件";
         } /*else if (!new File(ROOT_FILE_PATH  + "\\1\\" + simulationCity + "\\OD.npy").exists()) {
             msg = "缺少OD数据文件";
@@ -78,10 +92,12 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
         Map<String, Object> result = new HashMap<>();
         String curDirName = "";
+        int resultId = 0;
         if ("start simulate".equals(msg)) {
             curDirName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
+            resultId = getResultId(userId, "none_type");
             // 在数据库创建一条新的模拟记录
-            boolean dbSaveStatus = saveRecordDatabase("none_type", curDirName, simulationCity);
+            boolean dbSaveStatus = saveRecordDatabase(userId, resultId, "none_type", curDirName, simulationCity);
             if (dbSaveStatus) {
                 logger.info("Database record saved successfully for simulation: " + simulationCity);
             } else {
@@ -94,7 +110,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             // 调用 Python 脚本
             boolean pythonExecutionStatus = executePythonScript(
                     ROOT_FILE_PATH + "simulate.py", // 替换为 Python 脚本路径
-                    R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simulation_days, simulation_city, curDirName
+                    R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simulation_days, simulation_city, curDirName, userId
             );
 
             if (pythonExecutionStatus) {
@@ -112,7 +128,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             return result;
         }
         // 更新数据库
-        boolean dbUpdateStatus = modifyStatus("none_type",curDirName);
+        boolean dbUpdateStatus = modifyStatus(resultId, "none_type", curDirName);
         if (dbUpdateStatus) {
             logger.info("Database status updated successfully for simulation: " + simulationCity);
         } else {
@@ -133,7 +149,8 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             String regionList,
             int simulationDays,
             String simulationCity,
-            String curDirName) {
+            String curDirName,
+            Long userId) {
 
         // 指定虚拟环境的 Python 解释器路径
         String pythonExecutable = "C:\\Users\\Lenovo\\anaconda3\\envs\\myenv39\\python.exe"; // 替换为你的虚拟环境路径
@@ -156,7 +173,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
 
             // 设置环境变量和工作目录
-            processBuilder.directory(new File(ROOT_FILE_PATH+ "\\1\\"));
+            processBuilder.directory(new File(ROOT_FILE_PATH + userId));
             processBuilder.redirectErrorStream(true);
 
 
@@ -180,53 +197,93 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
         }
     }
 
-    // 在数据库中新插入一条模拟记录
-    public boolean saveRecordDatabase(String funcType, String dirName, String cityName) {
-        String tableName;
+    // 获取当前模拟id
+    public int getResultId(Long userId, String funcType) {
+        String resultColumn;
+        String resultTable;
         switch (funcType) {
             case "none_type":
-                tableName = "infection_unlock_simulation_result";
+                resultColumn = "unlock_result_id";
+                resultTable = "infection_unlock_simulation_result";
                 break;
             case "lock_type":
-                tableName = "infection_lock_simulation_result";
+                resultColumn = "lock_result_id";
+                resultTable = "infection_lock_simulation_result";
                 break;
             case "MADDPG_type":
-                tableName = "MADDPG_simulationRecord";
+                resultColumn = "maddpg_result_id";
+                resultTable = "maddpg_simulation_result";
+                break;
+            default:
+                logger.warning("Invalid funcType provided: " + funcType);
+                return -1;
+        }
+        // 获取当前用户在 user_infection_simulation_result 表中的最大 result_id
+        Integer currentMaxResultId = simulationTaskMapper.getMaxResultId(userId, resultTable, resultColumn);
+        int newResultId = (currentMaxResultId == null ? 0 : currentMaxResultId) + 1;
+        return newResultId;
+    }
+
+    // 在数据库中新插入一条模拟记录
+    public boolean saveRecordDatabase(Long userId, int newResultId, String funcType, String dirName, String cityName) {
+        String resultColumn;
+        String resultTable;
+        switch (funcType) {
+            case "none_type":
+                resultColumn = "unlock_result_id";
+                resultTable = "infection_unlock_simulation_result";
+                break;
+            case "lock_type":
+                resultColumn = "lock_result_id";
+                resultTable = "infection_lock_simulation_result";
+                break;
+            case "MADDPG_type":
+                resultColumn = "maddpg_result_id";
+                resultTable = "maddpg_simulation_result";
                 break;
             default:
                 logger.warning("Invalid funcType provided: " + funcType);
                 return false;
         }
 
-        // 获取当前最大 ID
-        Integer currentMaxId = simulationTaskMapper.getMaxId(tableName);
-        int newId = (currentMaxId == null ? 0 : currentMaxId) + 1;
+        try {
+            // 获取当前用户在 user_infection_simulation_result 表中的最大 result_id
+            //Integer currentMaxResultId = simulationTaskMapper.getMaxResultId(userId, resultColumn);
+            //int newResultId = (currentMaxResultId == null ? 0 : currentMaxResultId) + 1;
 
-        // 插入新记录
-        int rowsInserted = simulationTaskMapper.insertSimulationRecord(tableName, newId, dirName, cityName, "False");
-        if (rowsInserted > 0) {
-            logger.info("Successfully inserted record into " + tableName + " with ID: " + newId);
-            return true;
-        } else {
-            logger.warning("Failed to insert record into " + tableName);
+            // 在对应的结果表中插入新记录
+            int rowsInserted = simulationTaskMapper.insertSimulationResult(resultTable, userId, newResultId, dirName, cityName, "False");
+            if (rowsInserted <= 0) {
+                logger.warning("Failed to insert record into " + resultTable);
+                return false;
+            } else{
+                logger.info("Successfully updated database");
+                return true;
+            }
+        } catch (Exception e) {
+            logger.severe("Error saving record database: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
     // 在数据库中更新模拟状态
-    public boolean modifyStatus(String funcType, String dirName) {
-        String tableName;
-
+    public boolean modifyStatus(int resultId, String funcType, String dirName) {
+        String resultTable;
+        String resultColumn;
         // 根据类型选择对应表名
         switch (funcType) {
             case "none_type":
-                tableName = "simulationRecord";
+                resultTable = "infection_unlock_simulation_result";
+                resultColumn = "unlock_result";
                 break;
             case "lock_type":
-                tableName = "lock_simulationRecord";
+                resultTable = "infection_lock_simulation_result";
+                resultColumn = "lock_result";
                 break;
             case "MADDPG_type":
-                tableName = "MADDPG_simulationRecord";
+                resultTable = "maddpg_simulation_result";
+                resultColumn = "maddpg_result";
                 break;
             default:
                 logger.warning("Invalid funcType provided: " + funcType);
@@ -234,15 +291,46 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
         }
 
         // 调用 Mapper 层更新状态
-        int rows = simulationTaskMapper.updateTaskStatus(tableName, "True", dirName);
-        if (rows > 0) {
-            logger.info("Successfully updated state for dirName: " + dirName + " in table: " + tableName);
-            return true;
-        } else {
-            logger.warning("No rows updated for dirName: " + dirName + " in table: " + tableName);
+        try {
+            int rows = simulationTaskMapper.updateTaskStatus(resultTable, resultColumn, "True", dirName, resultId);
+            if (rows > 0) {
+                logger.info("Successfully updated state for resultId: " + resultId + " in table: " + resultTable);
+                return true;
+            } else {
+                logger.warning("No rows updated for resultId: " + resultId + " in table: " + resultTable);
+                return false;
+            }
+        } catch (Exception e) {
+            logger.severe("Error updating task status: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
+
+    // 生成 MADDPG 策略
+    public boolean generateMADDPGPolicy(long userId, String simulationCity, int simulationDays) {
+    }
+
+
+
+
+    // 更新策略记录
+    private void updatePolicyRecords(String simulationCity, String policyCurDirName) {
+        String startTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
+        logger.info("Updating MADDPG policy records...");
+
+        // 更新时间记录表
+        simulationTaskMapper.updateSimulationTimeRecord(simulationCity, startTime, policyCurDirName);
+
+        // 插入新的策略记录
+        int simulationId = simulationTaskMapper.getCurrentSimulationId();
+        simulationTaskMapper.insertPolicyRecord(policyCurDirName, simulationId);
+
+        logger.info("MADDPG policy records updated successfully.");
+    }
+
+
+
 
 
 

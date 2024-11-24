@@ -26,6 +26,7 @@ public class SimulationTest {
         request.setRegionList("{\"0\": [113.373708, 23.12986], \"1\": [113.298808, 23.08986]}");
         request.setSimulationDays(1);
         request.setSimulationCity("chongqing");
+        request.setUserId(1);
 
         // 调用服务层方法运行模拟任务
         Map<String, Object> result = simulationTaskService.unlockSimulationTask(request);

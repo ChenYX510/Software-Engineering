@@ -4,42 +4,39 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.ruoyi.infection.mapper.SimulationTaskMapper">
-    <!-- 获取表中当前最大 ID -->
-    <select id="getMaxId" resultType="java.lang.Integer">
-        SELECT MAX(CASE
-        WHEN #{tableName} = 'infection_unlock_simulation_result' THEN unlock_result_id
-        WHEN #{tableName} = 'infection_lock_simulation_result' THEN lock_result_id
-        WHEN #{tableName} = 'maddpg_simulation_result' THEN maddpg_result_id
-        END)
-        FROM ${tableName}
+    <select id="getMaxResultId" resultType="Integer">
+        SELECT MAX(${resultColumn})
+        FROM ${resultTable}
+        WHERE user_id = #{userId}
     </select>
 
     <!-- 插入新的模拟记录 -->
-    <insert id="insertSimulationRecord">
-        INSERT INTO ${tableName}
+    <insert id="insertSimulationResult">
+        INSERT INTO ${resultTable}
         (
         <choose>
-            <when test="tableName == 'infection_unlock_simulation_result'">
-                unlock_result_id, filepath, city, state
+            <when test="resultTable == 'infection_unlock_simulation_result'">
+                user_id, unlock_result_id, filepath, city_name, state
             </when>
-            <when test="tableName == 'infection_lock_simulation_result'">
-                lock_result_id, filepath, city, state
+            <when test="resultTable == 'infection_lock_simulation_result'">
+                user_id, lock_result_id, filepath, city_name, state
             </when>
-            <when test="tableName == 'maddpg_simulation_result'">
-                maddpg_result_id, filepath, city, state
+            <when test="resultTable == 'maddpg_simulation_result'">
+                user_id, maddpg_result_id, filepath, city_name, state
             </when>
         </choose>
         )
         VALUES
         (
-        #{id}, #{dirName}, #{cityName}, #{state}
+        #{userId}, #{resultId}, #{filepath}, #{cityName}, #{state}
         )
     </insert>
 
     <!-- 动态更新任务状态 -->
     <update id="updateTaskStatus">
-        UPDATE ${tableName}
+        UPDATE ${resultTable}
         SET state = #{state}
-        WHERE filepath = #{dirName}
+        WHERE filepath = #{filepath} AND ${resultColumn}_id = #{resultId}
     </update>
+
 </mapper>

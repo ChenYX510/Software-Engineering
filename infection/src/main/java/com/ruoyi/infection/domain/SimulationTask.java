@@ -10,6 +10,7 @@ public class SimulationTask {
     private String regionList;
     private int simulationDays;
     private String simulationCity;
+    private long userId; // 新增字段
 
     // Getters and Setters
     public double getR0() {
@@ -74,5 +75,13 @@ public class SimulationTask {
 
     public void setSimulationCity(String simulationCity) {
         this.simulationCity = simulationCity;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 }
