@@ -12,7 +12,7 @@ print("Python executable:", sys.executable)
 print("Python version:", sys.version)
 
 def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simulation_days, simulation_city, cur_dir_name):
-    output_dir = f'./Test_simulationResult/{simulation_city}/{cur_dir_name}'
+    output_dir = f'./SimulationResult/unlock_result/{simulation_city}/{cur_dir_name}'
     os.makedirs(output_dir, exist_ok=True)
 
     # 保存初始参数到 JSON

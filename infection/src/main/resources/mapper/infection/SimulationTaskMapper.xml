@@ -39,4 +39,30 @@
         WHERE filepath = #{filepath} AND ${resultColumn}_id = #{resultId}
     </update>
 
+    <!-- 查询 `maddpg_simulation_result` 表中最大的 ID -->
+    <select id="getMaxMADDPGRecordId" resultType="Integer">
+        SELECT MAX(maddpg_result_id)
+        FROM maddpg_simulation_result
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入一条新记录到 `maddpg_simulation_result` -->
+    <insert id="insertMADDPGSimulationRecord">
+        INSERT INTO maddpg_simulation_result (user_id, maddpg_result_id, maddpg_start_time, maddpg_end_time, state, city_name, simulation_end_time, simulation_start_time)
+        VALUES (#{userId}, #{id}, #{startTime}, #{endTime}, #{state}, #{city}, #{simulationEndTime}, #{simulationStartTime})
+    </insert>
+
+    <!-- 查询 `MADDPG_policy_record` 表中最大的 ID -->
+    <select id="getMaxPolicyRecordId" resultType="Integer">
+        SELECT MAX(policy_id)
+        FROM MADDPG_policy_record
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入一条新记录到 `MADDPG_policy_record` -->
+    <insert id="insertPolicyRecord">
+        INSERT INTO MADDPG_policy_record (policy_id, filepath, user_id, unlock_result_id)
+        VALUES (#{id}, #{filepath}, #{userId}, #{simulationId})
+    </insert>
+
 </mapper>

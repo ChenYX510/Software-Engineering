@@ -3,7 +3,7 @@ package com.ruoyi.infection.mapper;
 import org.apache.ibatis.annotations.Param;
 
 public interface SimulationTaskMapper {
-    // 获取 user_infection_simulation_result 表中某用户指定列的最大值
+    // 获取表中某用户指定列的最大值
     Integer getMaxResultId(@Param("userId") long userId,
                            @Param("resultTable") String resultTable,
                            @Param("resultColumn") String resultColumn);
@@ -22,4 +22,25 @@ public interface SimulationTaskMapper {
                          @Param("state") String state,
                          @Param("filepath") String filepath,
                          @Param("resultId") int resultId);
+
+    // 查询 `maddpg_simulation_time_record` 表中最大的 ID
+    Integer getMaxMADDPGRecordId(@Param("userId") long userId);
+
+    // 插入一条新记录到 `maddpg_simulation_time_record`
+    int insertMADDPGSimulationRecord(@Param("userId") long userId,
+                                     @Param("id") int id, @Param("startTime") String startTime,
+                                     @Param("endTime") String endTime, @Param("state") String state,
+                                     @Param("city") String city, @Param("simulationEndTime") String simulationEndTime,
+                                     @Param("simulationStartTime") String simulationStartTime);
+
+    // 查询 `MADDPG_policy_record` 表中最大的 ID
+    Integer getMaxPolicyRecordId(@Param("userId") long userId);
+
+    // 查询 `infection_unlock_simulation_result` 表中最大的 ID
+    Integer getMaxSimulationRecordId();
+
+    // 插入一条新记录到 `MADDPG_policy_record`
+    int insertPolicyRecord(@Param("id") int id, @Param("filepath") String filepath,
+                           @Param("userId") long userId,
+                           @Param("simulationId") Integer simulationId);
 }

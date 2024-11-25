@@ -31,17 +31,9 @@ import org.locationtech.jts.geom.Geometry;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.feature.DefaultTransaction;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureIterator;
-import org.geotools.feature.FeatureWriter;
-import org.geotools.data.Transaction;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureCollection;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -61,7 +53,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
     @Override
     public Map<String, Object> unlockSimulationTask(SimulationTask request) {
-        Long userId = request.getUserId();
+        long userId = request.getUserId();
         String simulationCity = request.getSimulationCity();
 
         double R0 = request.getR0();
@@ -135,6 +127,26 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             logger.warning("Failed to update database status for simulation: " + simulationCity);
         }
         result.put("msg", msg);
+
+        // 开始进行强化学习的策略生成
+        String policyCurDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
+        // 调用python脚本
+        boolean MADDPGStatus = generateMADDPGPolicy(ROOT_FILE_PATH + "maddpgPolicy.py", userId, simulationCity, simulation_days, policyCurDir, curDirName);
+        if (MADDPGStatus) {
+            logger.info("MADDPG policy started successfully");
+        } else {
+            logger.info("MADDPG policy failed");
+        }
+
+        // 记录决策结束的时间
+        String MADDPG_policy_end_time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
+        dbUpdateStatus = updatePolicyRecords(userId, simulationCity, policyCurDir, policyCurDir, MADDPG_policy_end_time, resultId);
+        if (dbUpdateStatus) {
+            logger.info("Database status updated successfully for simulation: " + simulationCity);
+        } else {
+            logger.warning("Failed to update database status for simulation: " + simulationCity);
+        }
+
         return result;
     }
 
@@ -150,7 +162,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             int simulationDays,
             String simulationCity,
             String curDirName,
-            Long userId) {
+            long userId) {
 
         // 指定虚拟环境的 Python 解释器路径
         String pythonExecutable = "C:\\Users\\Lenovo\\anaconda3\\envs\\myenv39\\python.exe"; // 替换为你的虚拟环境路径
@@ -256,7 +268,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             if (rowsInserted <= 0) {
                 logger.warning("Failed to insert record into " + resultTable);
                 return false;
-            } else{
+            } else {
                 logger.info("Successfully updated database");
                 return true;
             }
@@ -308,27 +320,79 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
     }
 
     // 生成 MADDPG 策略
-    public boolean generateMADDPGPolicy(long userId, String simulationCity, int simulationDays) {
+    public boolean generateMADDPGPolicy(String scriptPath, long userId, String simulationCity, int simulationDays, String policyCurDir, String curDirName) {
+        // String policyCurDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
+        // 指定虚拟环境的 Python 解释器路径
+        String pythonExecutable = "C:\\Users\\Lenovo\\anaconda3\\envs\\myenv39\\python.exe"; // 替换为你的虚拟环境路径
+
+        try {
+            // 构建命令
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    pythonExecutable, scriptPath, // 使用虚拟环境的 Python 解释器
+                    "--simulation_days", String.valueOf(simulationDays),
+                    "--simulation_city", simulationCity,
+                    "--cur_dir_name", curDirName,
+                    "--policy_dir", policyCurDir
+            );
+
+
+            // 设置环境变量和工作目录
+            processBuilder.directory(new File(ROOT_FILE_PATH + userId));
+            processBuilder.redirectErrorStream(true);
+
+
+            // 启动进程
+            Process process = processBuilder.start();
+
+            // 捕获输出
+            try (Scanner scanner = new Scanner(process.getInputStream())) {
+                while (scanner.hasNextLine()) {
+                    logger.info(scanner.nextLine());
+                }
+            }
+
+            // 等待脚本执行完成
+            int exitCode = process.waitFor();
+            return exitCode == 0; // 返回是否成功
+        } catch (Exception e) {
+            logger.severe("Error executing Python script: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
-
-
 
 
     // 更新策略记录
-    private void updatePolicyRecords(String simulationCity, String policyCurDirName) {
-        String startTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
-        logger.info("Updating MADDPG policy records...");
+    private boolean updatePolicyRecords(long userId, String simulationCity, String policyCurDirName, String startTime, String endTime, int simulationCurId) {
 
-        // 更新时间记录表
-        simulationTaskMapper.updateSimulationTimeRecord(simulationCity, startTime, policyCurDirName);
+        // 更新 `maddpg_simulation_result` 表
+        Integer maxTimeRecordId = simulationTaskMapper.getMaxMADDPGRecordId(userId);
+        int newTimeRecordId = (maxTimeRecordId == null ? 0 : maxTimeRecordId + 1);
 
-        // 插入新的策略记录
-        int simulationId = simulationTaskMapper.getCurrentSimulationId();
-        simulationTaskMapper.insertPolicyRecord(policyCurDirName, simulationId);
+        int rowsInsertedTimeRecord = simulationTaskMapper.insertMADDPGSimulationRecord(
+                userId, newTimeRecordId, startTime, endTime, "False", simulationCity, null, null
+        );
+        if (rowsInsertedTimeRecord == 0) {
+            logger.warning("Failed to insert into maddpg_simulation_time_record.");
+            return false;
+        }
 
-        logger.info("MADDPG policy records updated successfully.");
+        // 更新 `MADDPG_policy_record` 表
+        Integer maxPolicyRecordId = simulationTaskMapper.getMaxPolicyRecordId(userId);
+        // Integer simulationCurId = simulationTaskMapper.getMaxResultId(userId, "infection_unlock_simulation_result", "unlock_result_id");
+        int newPolicyRecordId = (maxPolicyRecordId == null ? 0 : maxPolicyRecordId + 1);
+
+        int rowsInsertedPolicyRecord = simulationTaskMapper.insertPolicyRecord(
+                newPolicyRecordId, policyCurDirName, userId, simulationCurId
+        );
+        if (rowsInsertedPolicyRecord == 0) {
+            logger.warning("Failed to insert into MADDPG_policy_record.");
+            return false;
+        }
+
+        logger.info("Successfully updated MADDPG records.");
+        return true;
     }
-
 
 
 
