@@ -27,10 +27,11 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
 
     @Autowired
     private LockSimulationRecordMapper lockSimulationRecordMapper;
+    private static final String ROOT_FILE_PATH = System.getProperty("user.dir") + "\\testUser\\";
 
     @Override
-    public List<Double> getLockEveryHourInfection(String city, String simulationFileName) {
-        String dir = "./GuangZhou_simulation/lock_result/" + city + "/";
+    public List<Double> getLockEveryHourInfection(String city,String userId, String simulationFileName) {
+        String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"lock_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
             List<Long> ids = lockSimulationRecordMapper.selectIdsByCity(city);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
@@ -40,16 +41,16 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
             }
 
             String queryFilePath = lockSimulationRecordMapper.selectFilepathById(maxId);
-            dir = Paths.get(dir, queryFilePath).toString();
+            dir = dir+queryFilePath+"\\";
         } else {
-            dir = Paths.get(dir, simulationFileName).toString();
+            dir = dir+simulationFileName+"\\";
         }
 
         // Load data from CSV files
         List<Double> result = new ArrayList<>();// 用于存储每个文件中 "I" 列的总和
         int curHour = 0;
-        while (new File(dir + "/SIHR_" + curHour + ".csv").exists()) {
-            double sum = loadAndSumInfections(dir + "/SIHR_" + curHour + ".csv");
+        while (new File(dir + "SIHR_" + curHour + ".csv").exists()) {
+            double sum = loadAndSumInfections(dir + "SIHR_" + curHour + ".csv");
             result.add(sum*0.8 );
             curHour++;
         }
@@ -58,8 +59,8 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
     }
 
     @Override
-    public List<Double> getEveryHourInfection(String city, String simulationFileName) {
-        String dir = "./GuangZhou_simulation/result/" + city + "/";
+    public List<Double> getEveryHourInfection(String city, String userId,String simulationFileName) {
+        String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"unlock_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
             List<Long> ids = lockSimulationRecordMapper.selectIdByCity(city);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
@@ -69,16 +70,16 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
             }
 
             String queryFilePath = lockSimulationRecordMapper.selectFilespathById(maxId);
-            dir = Paths.get(dir, queryFilePath).toString();//这个地方还有点疑问
+            dir = dir+queryFilePath+"\\";
         } else {
-            dir = Paths.get(dir, simulationFileName).toString();
+            dir = dir+simulationFileName+"\\";
         }
 
         // Load data from CSV files
         List<Double> result = new ArrayList<>();
         int curHour = 0;
-        while (new File(dir + "/SIHR_" + curHour + ".csv").exists()) {
-            double sum = loadAndSumInfections(dir + "/SIHR_" + curHour + ".csv");
+        while (new File(dir + "SIHR_" + curHour + ".csv").exists()) {
+            double sum = loadAndSumInfections(dir + "SIHR_" + curHour + ".csv");
             result.add(sum );
             curHour++;
         }
@@ -86,8 +87,8 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
         return result;
     }
     @Override
-    public List<Double> getMADDPGEveryHourInfection(String city, String simulationFileName) {
-        String dir = "./GuangZhou_simulation/MADDPG_result/" + city + "/";
+    public List<Double> getMADDPGEveryHourInfection(String city, String userId,String simulationFileName) {
+        String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"MADDPG_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
             List<Long> ids = lockSimulationRecordMapper.selectMADDPGIdByCity(city);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
@@ -97,9 +98,9 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
             }
 
             String queryFilePath = lockSimulationRecordMapper.selectMADDPGFilespathById(maxId);
-            dir = Paths.get(dir, queryFilePath).toString();//这个地方还有点疑问
+            dir = dir+queryFilePath+"\\";
         } else {
-            dir = Paths.get(dir, simulationFileName).toString();
+            dir = dir+simulationFileName+"\\";
         }
 
         // Load data from CSV files
@@ -107,13 +108,12 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
         int curHour = 0;
         // 循环，直到没有找到文件
         while (true) {
-            File file = new File(dir + "/simulation_DSIHR_result_" + curHour + ".npy");
+            File file = new File(dir + "simulation_DSIHR_result_" + curHour + ".npy");
 
             // 检查文件是否存在
             if (!file.exists()) {
                 break;
             }
-
             try {
                 // 使用 ND4J 加载 .npy 文件
                 INDArray data = Nd4j.createFromNpyFile(file);
@@ -127,7 +127,6 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
                 e.printStackTrace();
                 break;
             }
-
             curHour++;
         }
 
@@ -186,6 +185,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
  @Override
     public Map<String, Object> getMADDPGRiskPoints(SimulationRequest request) {
         Map<String, Object> response = new HashMap<>();
+        String userId = request.getuserId();
         String simulationCity = request.getCity();
         int simulationDay = request.getSimulationDay();
         int simulationHour = request.getSimulationHour();
@@ -196,7 +196,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
             simulationFileName = "latestRecord";
         }
 
-        String baseDir = "./GuangZhou_simulation/MADDPG_result/" + simulationCity + "/";
+        String baseDir =  ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"MADDPG_result\\"+simulationCity + "\\";
         if ("latestRecord".equals(simulationFileName)) {
             Integer curId = lockSimulationRecordMapper.getLatestSimulationId(simulationCity);
             if (curId == null) {
@@ -204,9 +204,9 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
                 return response;
             }
             String queryFileName = lockSimulationRecordMapper.getFilePathById(curId);
-            baseDir += queryFileName + "/";
+            baseDir += queryFileName + "\\";
         } else {
-            baseDir += simulationFileName + "/";
+            baseDir += simulationFileName + "\\";
         }
 
         simulationHour = (simulationDay - 1) * 24 + (simulationHour - 1);

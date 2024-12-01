@@ -10,5 +10,19 @@
         FROM infection_unlock_simulation_result
         WHERE city_name = #{city}
     </select>
-
+    <select id="selectSimulationRecordsByCity" resultType="com.ruoyi.infection.domain.SimulationcityRecord">
+        SELECT filepath AS simulationTime, state AS taskState
+        FROM infection_unlock_simulation_result
+        WHERE city_name = #{city}
+    </select>
+    <select id="selectSimulationLockRecordsByCity" resultType="com.ruoyi.infection.domain.SimulationcityRecord">
+        SELECT filepath AS simulationTime, state AS taskState
+        FROM infection_lock_simulation_result
+        WHERE city_name = #{city}
+    </select>
+    <select id="selectSimulationMADDPGRecordsByCity" resultType="com.ruoyi.infection.domain.SimulationcityRecord">
+        SELECT filepath AS simulationTime, state AS taskState
+        FROM maddpg_simulation_result
+        WHERE city_name = #{city}
+    </select>
 </mapper>

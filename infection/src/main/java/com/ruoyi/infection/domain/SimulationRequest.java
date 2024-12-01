@@ -1,5 +1,6 @@
 package com.ruoyi.infection.domain;
 public class SimulationRequest {
+    private String userId;
     private String city;
     private Integer simulationDay;
     private Integer simulationHour;
@@ -7,6 +8,13 @@ public class SimulationRequest {
     private String simulationFileName;
 
     // Getter and Setter for city
+    public String getuserId() {
+        return userId;
+    }
+
+    public void setuserId(String userId) {
+        this.userId = userId;
+    }
     public String getCity() {
         return city;
     }

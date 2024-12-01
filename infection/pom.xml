@@ -31,7 +31,7 @@
             <!-- ND4J核心库 -->
     <dependency>
         <groupId>org.nd4j</groupId>
-        <artifactId>nd4j-native</artifactId>
+        <artifactId>nd4j-native-platform</artifactId>
         <version>1.0.0-M2.1</version> <!-- 检查最新版本 -->
     </dependency>
     </dependencies>

@@ -30,8 +30,9 @@ public class UnlockTest {
         } else {
             System.out.println("No results found for user_id: " + testUserId);
         }*/
-
+/* 
         String result = unlockSimulationService.inquireCitySimulationResult(testUserId);
         System.out.println(result);
+    }*/
     }
 }
