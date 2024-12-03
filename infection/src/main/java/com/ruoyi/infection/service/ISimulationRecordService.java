@@ -7,7 +7,7 @@ import java.util.List;
 
 
 public interface ISimulationRecordService {
-    List<Long> getIdsByCity(String city);
+    List<Long> getIdsByCity(String city,String userId);
     List<CitySimulationResult> getCitySimulationResults(String userId);
     List<CitySimulationResult> getCitySimulationLockResults(String userId);
     List<CitySimulationResult> getCitySimulationMADDPGResults(String userId);

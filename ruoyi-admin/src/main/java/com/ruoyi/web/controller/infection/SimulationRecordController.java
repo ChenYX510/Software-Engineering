@@ -17,9 +17,9 @@ public class SimulationRecordController {
     private ISimulationRecordService simulationRecordService;
 
     @PostMapping("/test_database")
-    public Map<String, Object> testDatabase() {
+    public Map<String, Object> testDatabase(@RequestParam String userId) {
         String city = "ezhou"; // 将城市硬编码为 'ezhou'
-        List<Long> curId = simulationRecordService.getIdsByCity(city);
+        List<Long> curId = simulationRecordService.getIdsByCity(city,userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("msg", "succeed");

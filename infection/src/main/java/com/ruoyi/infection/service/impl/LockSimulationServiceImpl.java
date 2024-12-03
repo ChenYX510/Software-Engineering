@@ -33,7 +33,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
     public List<Double> getLockEveryHourInfection(String city,String userId, String simulationFileName) {
         String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"lock_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
-            List<Long> ids = lockSimulationRecordMapper.selectIdsByCity(city);
+            List<Long> ids = lockSimulationRecordMapper.selectIdsByCity(city,userId);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
 
             if (maxId == -1) {
@@ -62,7 +62,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
     public List<Double> getEveryHourInfection(String city, String userId,String simulationFileName) {
         String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"unlock_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
-            List<Long> ids = lockSimulationRecordMapper.selectIdByCity(city);
+            List<Long> ids = lockSimulationRecordMapper.selectIdByCity(city,userId);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
 
             if (maxId == -1) {
@@ -90,7 +90,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
     public List<Double> getMADDPGEveryHourInfection(String city, String userId,String simulationFileName) {
         String dir = ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"MADDPG_result\\"+city + "\\";
         if (Objects.equals(simulationFileName, "latestRecord")) {
-            List<Long> ids = lockSimulationRecordMapper.selectMADDPGIdByCity(city);
+            List<Long> ids = lockSimulationRecordMapper.selectMADDPGIdByCity(city,userId);
             Long maxId = ids.stream().max(Long::compare).orElse(-1L);
 
             if (maxId == -1) {
@@ -198,7 +198,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
 
         String baseDir =  ROOT_FILE_PATH+userId + "\\" + "SimulationResult" +  "\\"+"MADDPG_result\\"+simulationCity + "\\";
         if ("latestRecord".equals(simulationFileName)) {
-            Integer curId = lockSimulationRecordMapper.getLatestSimulationId(simulationCity);
+            Integer curId = lockSimulationRecordMapper.getLatestSimulationId(simulationCity,userId);
             if (curId == null) {
                 response.put("msg", "没有最新的模拟记录");
                 return response;

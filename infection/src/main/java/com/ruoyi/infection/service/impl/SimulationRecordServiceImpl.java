@@ -30,7 +30,7 @@ public class SimulationRecordServiceImpl implements ISimulationRecordService {
     private SimulationRecordMapper simulationRecordMapper;
 
     @Override
-    public List<Long> getIdsByCity(String city) {
+    public List<Long> getIdsByCity(String city,String userId) {
         return simulationRecordMapper.selectIdsByCity(city);
     }
        @Override
@@ -43,7 +43,7 @@ public class SimulationRecordServiceImpl implements ISimulationRecordService {
             File dir = new File(dirr);
             int numResults = dir.exists() ? dir.list().length : 0;
 
-            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationRecordsByCity(city);
+            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationRecordsByCity(city,userId);
 
             for (SimulationcityRecord record : simulationRecords) {
                 String dataFilePath = dirr + "\\" + record.getSimulationTime() + "\\data.json";//这个地方还有待商榷
@@ -82,7 +82,7 @@ public class SimulationRecordServiceImpl implements ISimulationRecordService {
             File dir = new File(dirr);
             int numResults = dir.exists() ? dir.list().length : 0;
 
-            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationLockRecordsByCity(city);
+            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationLockRecordsByCity(city,userId);
 
             for (SimulationcityRecord record : simulationRecords) {
                 String dataFilePath = dirr + "\\" + record.getSimulationTime() + "\\data.json";//这个地方还有待商榷
@@ -121,7 +121,7 @@ public class SimulationRecordServiceImpl implements ISimulationRecordService {
             File dir = new File(dirr);
             int numResults = dir.exists() ? dir.list().length : 0;
 
-            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationMADDPGRecordsByCity(city);
+            List<SimulationcityRecord> simulationRecords = simulationRecordMapper.selectSimulationMADDPGRecordsByCity(city,userId);
 
             for (SimulationcityRecord record : simulationRecords) {
                 String dataFilePath = dirr + "\\" + record.getSimulationTime() + "\\data.json";//这个地方还有待商榷

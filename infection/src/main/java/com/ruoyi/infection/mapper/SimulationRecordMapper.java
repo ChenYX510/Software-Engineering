@@ -6,7 +6,7 @@ import com.ruoyi.infection.domain.SimulationcityRecord;
 
 public interface SimulationRecordMapper {
     List<Long> selectIdsByCity(String city);
-    List<SimulationcityRecord> selectSimulationRecordsByCity( String city);
-    List<SimulationcityRecord> selectSimulationLockRecordsByCity( String city);
-    List<SimulationcityRecord> selectSimulationMADDPGRecordsByCity( String city);
+    List<SimulationcityRecord> selectSimulationRecordsByCity(@Param("city") String city,@Param("userId") String userId);
+    List<SimulationcityRecord> selectSimulationLockRecordsByCity(@Param("city") String city,@Param("userId") String userId);
+    List<SimulationcityRecord> selectSimulationMADDPGRecordsByCity(@Param("city") String city,@Param("userId") String userId);
 }

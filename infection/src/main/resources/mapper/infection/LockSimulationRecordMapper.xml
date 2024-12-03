@@ -8,7 +8,7 @@
     <select id="selectIdsByCity" parameterType="string" resultType="long">
         SELECT lock_result_id
         FROM infection_lock_simulation_result
-        WHERE city_name = #{city}
+        WHERE city_name = #{city} AND user_id = #{userId}
     </select>
 
     <!-- 根据ID查询文件路径 -->
@@ -21,7 +21,7 @@
     <select id="selectIdByCity" parameterType="string" resultType="long">
         SELECT unlock_result_id
         FROM infection_unlock_simulation_result
-        WHERE city_name = #{city}
+        WHERE city_name = #{city} AND user_id = #{userId}
     </select>
 
     <!-- 根据ID查询文件路径 -->
@@ -34,7 +34,7 @@
     <select id="selectMADDPGIdByCity" parameterType="string" resultType="long">
         SELECT maddpg_result_id
         FROM maddpg_simulation_result
-        WHERE city_name = #{city}
+        WHERE city_name = #{city} AND user_id = #{userId}
     </select>
 
     <!-- 根据ID查询文件路径 -->
@@ -47,7 +47,7 @@
     <select id="getLatestSimulationId" resultType="Integer">
         SELECT MAX(maddpg_result_id) 
         FROM maddpg_simulation_result 
-        WHERE city_name = #{city}
+        WHERE city_name = #{city} AND user_id = #{userId}
     </select>
 
     <select id="getFilePathById" resultType="String">

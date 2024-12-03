@@ -3,5 +3,6 @@ import com.ruoyi.infection.domain.LockSimulationTimeRecord;
 import java.util.Map;
 import java.util.List;
 public interface ILockSimulationTimeRecordService {
-    void addLockSimulationTimeRecord(String city, String startTime);
+    void addLockSimulationTimeRecord(String city, String startTime,String userId);
+    Map<String, Object> getLockAndMaddpgSimulationTime(Map<String, String> requestBody);
 }

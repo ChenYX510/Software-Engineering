@@ -19,21 +19,21 @@ public class SimulationRecordTest {
 
     @Test
     public void testGetSimulationRecordsByCity() {
-       /*/ // 使用一个测试的城市名称
-        String testCity = "ezhou";  // 假设你需要查询的城市为 "ezhou"
-
+        /*// 使用一个测试的城市名称
+        String testCity = "shanghai";  // 假设你需要查询的城市为 "ezhou"
+        String userId = "1";  // 假设你需要查询的城市为 "ezhou"
         // 调用服务层方法查询结果
-        List<Long> resultIds = simulationRecordService.getIdsByCity(testCity);
+        List<Long> resultIds = simulationRecordService.getIdsByCity(testCity,userId);
 
         // 输出查询结果
         if (resultIds != null && !resultIds.isEmpty()) {
             for (Long id : resultIds) {
-                System.out.println("Found simulation record with id: " + id);
+                System.out.println("找到的记录id是: " + id);
             }
         } else {
-            System.out.println("No simulation records found for city: " + testCity);
+            System.out.println("没有该城市的记录: " + testCity);
         }*/
-
+/*
         String userId="1";
                // 调用服务层方法查询所有城市的模拟结果
         List<CitySimulationResult> results = simulationRecordService.getCitySimulationResults(userId);
@@ -58,6 +58,6 @@ public class SimulationRecordTest {
             } else {
                 System.out.println("  这个城市没有模拟记录");
             }
-        }
+        }*/
     }
 }

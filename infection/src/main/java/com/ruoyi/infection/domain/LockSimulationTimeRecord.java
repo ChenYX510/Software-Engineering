@@ -9,17 +9,19 @@ public class LockSimulationTimeRecord {
     private String simulationEndTime;
     private String city;
     private String state;
+    private String userId;
 
     // Constructors
     public LockSimulationTimeRecord() {}
 
-    public LockSimulationTimeRecord(Integer id, String lockRegionStartTime, String lockRegionEndTime, String simulationEndTime, String city, String state) {
+    public LockSimulationTimeRecord(Integer id, String lockRegionStartTime, String lockRegionEndTime, String simulationEndTime, String city, String state, String userId) {
         this.id = id;
         this.lockRegionStartTime = lockRegionStartTime;
         this.lockRegionEndTime = lockRegionEndTime;
         this.simulationEndTime = simulationEndTime;
         this.city = city;
         this.state = state;
+        this.userId = userId;
     }
 
     // Getters and Setters
@@ -69,5 +71,12 @@ public class LockSimulationTimeRecord {
 
     public void setState(String state) {
         this.state = state;
+    }
+    public String getuserId() {
+        return userId;
+    }
+
+    public void setuserId(String userId) {
+        this.userId = userId;
     }
 }

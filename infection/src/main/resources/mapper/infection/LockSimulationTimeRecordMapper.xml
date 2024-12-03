@@ -6,10 +6,40 @@
 <mapper namespace="com.ruoyi.infection.mapper.LockSimulationTimeRecordMapper">
     <select id="selectMaxId" resultType="Integer">
         SELECT MAX(lock_result_id) FROM infection_lock_simulation_result
+        WHERE user_id = #{userId}
     </select>
 
     <insert id="insertLockSimulationTimeRecord">
-        INSERT INTO infection_lock_simulation_result (lock_result_id, lock_region_start_time, lock_region_end_time, simulation_end_time, city_name, state)
-        VALUES (#{id}, #{lockRegionStartTime}, #{lockRegionEndTime}, #{simulationEndTime}, #{city}, #{state})
+        INSERT INTO infection_lock_simulation_result (lock_result_id, lock_region_start_time, lock_region_end_time, simulation_end_time, city_name, state, user_id)
+        VALUES (#{id}, #{lockRegionStartTime}, #{lockRegionEndTime}, #{simulationEndTime}, #{city}, #{state}, #{userId})
     </insert>
+    <!-- 根据时间获取手动封控模拟记录 -->
+    <select id="getLockSimulationTimeByTime" resultType="map">
+        SELECT lock_region_start_time, lock_region_end_time, simulation_end_time
+        FROM infection_lock_simulation_result
+        WHERE lock_region_end_time = #{time} AND user_id = #{userId}
+    </select>
+
+    <!-- 获取最新的手动封控模拟记录 -->
+    <select id="getLatestLockSimulationTime" resultType="map">
+        SELECT lock_region_start_time, lock_region_end_time, simulation_end_time
+        FROM infection_lock_simulation_result
+        WHERE city_name = #{city} AND state = 'True' AND user_id = #{userId}
+        ORDER BY lock_result_id DESC LIMIT 1
+    </select>
+
+    <!-- 根据时间获取自动封控模拟记录 -->
+    <select id="getMaddpgSimulationTimeByTime" resultType="map">
+        SELECT maddpg_start_time, maddpg_end_time, simulation_start_time, simulation_end_time
+        FROM maddpg_simulation_result
+        WHERE simulation_start_time = #{time} AND user_id = #{userId}
+    </select>
+
+    <!-- 获取最新的自动封控模拟记录 -->
+    <select id="getLatestMaddpgSimulationTime" resultType="map">
+        SELECT maddpg_start_time, maddpg_end_time, simulation_start_time, simulation_end_time
+        FROM maddpg_simulation_result
+        WHERE city_name = #{city} AND state = 'True' AND user_id = #{userId}
+        ORDER BY maddpg_result_id DESC LIMIT 1
+    </select>
 </mapper>
