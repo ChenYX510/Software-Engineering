@@ -3,9 +3,9 @@
 import os
 import json
 import argparse
+import math
 import numpy as np
 import geopandas as gpd
-import math
 import time
 
 import sys
@@ -24,8 +24,8 @@ def get_grid_index_func(lat, lan, simulation_city):
     col_index = (lan - o_lan) / 0.005
     return math.floor(row_index), math.floor(col_index)
 
-def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simulation_days, simulation_city, cur_dir_name):
-    output_dir = f'./SimulationResult/unlock_result/{simulation_city}/{cur_dir_name}'
+def lock_simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simulation_days, simulation_city, lock_area, lock_day, cur_dir_name):
+    output_dir = f'./SimulationResult/lock_result/{simulation_city}/{cur_dir_name}'
     os.makedirs(output_dir, exist_ok=True)
 
     # 保存初始参数到 JSON
@@ -37,7 +37,9 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
         "I_input": json.loads(I_input),
         "region_list": json.loads(region_list),
         "simulation_days": simulation_days,
-        "simulation_city": simulation_city
+        "simulation_city": simulation_city,
+        "lock_area": lock_area,
+        "lock_day": lock_day
     }
     with open(f'{output_dir}/data.json', 'w') as f:
         json.dump(data, f)
@@ -53,6 +55,28 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
     grid_shp = gpd.GeoDataFrame.from_file(shp_path)
     grid_array = grid_shp['geometry'].to_numpy()
 
+    # 获取封闭区域
+    lock_xy_index_grid = []
+    lock_area_json = json.loads(lock_area)
+    for key, item in lock_area_json.items():
+        lat = float(item[0])
+        lon = float(item[1])
+        index_x, index_y = get_grid_index_func(lat, lon, simulation_city)
+        key_name = str(index_x) + '_' + str(index_y)
+        if key_name in grid_index_dict:
+            key_name_value = grid_index_dict[key_name]
+            lock_xy_index_grid.append(key_name_value)
+        else:
+            continue
+    # 生成相应的shp文件
+    grid_shp.insert(loc=1, column='quota', value=1.0)  # 在最后一列后，插入值全为3的c列
+    for lock_index in lock_xy_index_grid:
+        grid_shp.loc[lock_index, 'quota'] = 0
+    os.makedirs('./lock_grid_coefficient/' + str(simulation_city) + '/' + cur_dir_name)
+    grid_shp.to_file('./lock_grid_coefficient/' + str(simulation_city) + '/' + cur_dir_name
+                     + '/' + 'lock_grid_coefficient.shp', driver='ESRI Shapefile', encoding='utf-8')
+
+    # 开始模拟
     # 初始化人口数据
     N_0 = np.load(f'./{simulation_city}/population.npy')
     S_0 = N_0.copy()
@@ -64,7 +88,6 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
     I_input_json = json.loads(I_input)
     I_input_items = I_input_json.items()
     I_input = []
-    # 将 I_input 和 region_list 解析为 JSON 格式，并遍历它们，计算每个位置的网格索引，并更新对应的 S 和 I 数量
     for key, value in I_input_items:
         I_input.append(int(value))
     region_list_json = json.loads(region_list)
@@ -72,7 +95,7 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
         index = int(key)
         lat, lon = value
         index_x, index_y = get_grid_index_func(lat, lon, simulation_city)
-        key_name = f'{lat}_{lon}'
+        key_name = str(index_x) + '_' + str(index_y)
         if key_name in grid_index_dict:
             xy_index_grid = grid_index_dict[key_name]
             S_0[xy_index_grid] = np.where(S_0[xy_index_grid] >= I_input[index], S_0[xy_index_grid] - I_input[index], 0)
@@ -82,6 +105,11 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
     if simulation_city == 'yuzhong':
         OD = np.load(f'./OD_data/{simulation_city}/OD.npy')
         for time_index in range(simulation_days * 24):
+            # 在封锁时间内封锁区域
+            if time_index < (lock_day * 24):
+                for lock_item in lock_xy_index_grid:
+                    OD[lock_item, :, :] = 0
+                    OD[:, lock_item, :] = 0
             S_0, I_0, H_0, R_0 = simulate_step(
                 time_index, S_0, I_0, H_0, R_0, N_0, OD[time_index, :, :], [R0, I_H_para, I_R_para, H_R_para], grid_array, output_dir
             )
@@ -89,6 +117,11 @@ def simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list, simu
         for file_index in range(simulation_days * 6):
             OD = np.load(f'./OD_data/{simulation_city}/OD_{file_index}.npz')
             OD = OD[OD.files[0]]
+            if file_index < (lock_day * 6):
+                # app.logger.info('test')
+                for lock_item in lock_xy_index_grid:
+                    OD[lock_item, :, :] = 0
+                    OD[:, lock_item, :] = 0
             for hour_index in range(4):
                 S_0, I_0, H_0, R_0 = simulate_step(
                     file_index * 4 + hour_index, S_0, I_0, H_0, R_0, N_0, OD[:, :, hour_index],
@@ -122,7 +155,7 @@ def simulate_step(time_index, S_0, I_0, H_0, R_0, N_0, OD, simulation_para, grid
 
     grid_length = len(S_0)
 
-    # 计算人口流动占比
+    # 计算人口流动占比，返回numpy数组
     S_temp = np.divide(S_0, move_people, out=np.zeros_like(S_0), where=move_people > 0)
     I_temp = np.divide(I_0, move_people, out=np.zeros_like(I_0), where=move_people > 0)
     R_temp = np.divide(R_0, move_people, out=np.zeros_like(R_0), where=move_people > 0)
@@ -153,13 +186,13 @@ def simulate_step(time_index, S_0, I_0, H_0, R_0, N_0, OD, simulation_para, grid
         OD.sum(axis=0),
         out=np.zeros_like(S_people.sum(axis=0)),
         where=(OD.sum(axis=0) > 0),
-        )
+    )
     s_infected = np.divide(
         R0 * 0.01 * S_0 * I_0,
         N_0,
         out=np.zeros_like(S_0),
         where=(N_0 > 0),
-        )
+    )
     new_infected = m_infected + s_infected
 
     new_hospital = I_0 * I_H_para
@@ -200,6 +233,8 @@ if __name__ == "__main__":
     parser.add_argument("--region_list", type=str, required=True, help="Region list JSON.")
     parser.add_argument("--simulation_days", type=int, required=True, help="Number of simulation days.")
     parser.add_argument("--simulation_city", type=str, required=True, help="City name for simulation.")
+    parser.add_argument("--lock_area", type=str, required=True, help="lock area.")
+    parser.add_argument("--lock_day", type=float, required=True, help="lock day.")
     parser.add_argument("--cur_dir_name", type=str, required=True, help="cur_dir_name.")
 
 
@@ -207,8 +242,8 @@ if __name__ == "__main__":
 
     print(args.I_input)
 
-    result = simulation_task(
-        args.R0, args.I_H_para, args.I_R_para, args.H_R_para,
-        args.I_input, args.region_list, args.simulation_days, args.simulation_city,args.cur_dir_name
+    result = lock_simulation_task(
+        args.R0, args.I_H_para, args.I_R_para, args.H_R_para,args.I_input, args.region_list,
+        args.simulation_days, args.simulation_city, args.lock_area, args.lock_day, args.cur_dir_name
     )
     print(result)

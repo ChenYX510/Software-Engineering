@@ -9,6 +9,8 @@ public class SimulationTask {
     private String I_input;
     private String regionList;
     private int simulationDays;
+    private String lock_area;
+    private int lock_day;
     private String simulationCity;
     private long userId; // 新增字段
 
@@ -59,6 +61,22 @@ public class SimulationTask {
 
     public void setRegionList(String regionList) {
         this.regionList = regionList;
+    }
+
+    public String getLock_area() {
+        return lock_area;
+    }
+
+    public void setLock_area(String lock_area) {
+        this.lock_area = lock_area;
+    }
+
+    public int getLock_day() {
+        return lock_day;
+    }
+
+    public void setLock_day(int lock_day) {
+        this.lock_day = lock_day;
     }
 
     public int getSimulationDays() {

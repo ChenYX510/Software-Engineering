@@ -20,4 +20,14 @@ public class SimulationTaskController {
             return AjaxResult.error("Simulation failed: " + e.getMessage());
         }
     }
+
+    @PostMapping("/lock_simulation")
+    public AjaxResult lockSimulate(@RequestBody SimulationTask request) {
+        try {
+            Map<String, Object> result = simulationTaskService.lockSimulationTask(request);
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error("Simulation failed: " + e.getMessage());
+        }
+    }
 }
