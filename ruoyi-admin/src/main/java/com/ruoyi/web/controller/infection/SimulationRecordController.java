@@ -44,4 +44,58 @@ public class SimulationRecordController {
     public List<CitySimulationResult> quireCitySimulationMADDPGResult(@RequestParam String userId) {
         return simulationRecordService.getCitySimulationMADDPGResults(userId);
     }
+    @PostMapping("/get_simulation_result")
+    public Map<String, Object> getSimulationResult(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        int simulationDay = (int) requestBody.get("simulation_day");
+        int simulationHour = (int) requestBody.get("simulation_hour");
+        String simulationFileName = requestBody.containsKey("simulation_file_name") ? (String) requestBody.get("simulation_file_name") : "latestRecord";
+        String userId = (String) requestBody.get("user_id");
+        return simulationRecordService.getSimulationResult(city, simulationDay, simulationHour, simulationFileName,userId);
+    }
+    @PostMapping("/get_lock_simulation_result")
+    public Map<String, Object> getLockSimulationResult(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        int simulationDay = (int) requestBody.get("simulation_day");
+        int simulationHour = (int) requestBody.get("simulation_hour");
+        String simulationFileName = requestBody.containsKey("simulation_file_name") ? (String) requestBody.get("simulation_file_name") : "latestRecord";
+        String userId = (String) requestBody.get("user_id");
+        return simulationRecordService.getLockSimulationResult(city, simulationDay, simulationHour, simulationFileName,userId);
+    }
+    @PostMapping("/get_simulation_risk_point")
+    public Map<String, Object> getSimulationRiskPoints(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        String userId = (String) requestBody.get("user_id");
+        int simulationDay = (int) requestBody.get("simulation_day");
+        int simulationHour = (int) requestBody.get("simulation_hour");
+        int thresholdInfected = (int) requestBody.get("threshold_Infected");
+        String simulationFileName = requestBody.getOrDefault("simulation_file_name", "latestRecord").toString();
+
+        return simulationRecordService.getSimulationRiskPoints(city, simulationDay, simulationHour, thresholdInfected, simulationFileName,userId);
+    }
+    @PostMapping("/get_lock_simulation_risk_point")
+    public Map<String, Object> getLockSimulationRiskPoints(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        String userId = (String) requestBody.get("user_id");
+        int simulationDay = (int) requestBody.get("simulation_day");
+        int simulationHour = (int) requestBody.get("simulation_hour");
+        int thresholdInfected = (int) requestBody.get("threshold_Infected");
+        String simulationFileName = requestBody.getOrDefault("simulation_file_name", "latestRecord").toString();
+
+        return simulationRecordService.getLockSimulationRiskPoints(city, simulationDay, simulationHour, thresholdInfected, simulationFileName,userId);
+    }
+    @PostMapping("/get_grid_control_policy_func_finish")
+    public Map<String, Object> grid_control_policy(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        String userId = (String) requestBody.get("user_id");
+
+        return simulationRecordService.getgrid_control_policy(city,userId);
+    }
+    @PostMapping("/get_city_4_level_name")
+    public Map<String, Object> getCity4LevelName(@RequestBody Map<String, Object> requestBody) {
+        String city = (String) requestBody.get("city");
+        String userId = (String) requestBody.get("user_id");
+
+        return simulationRecordService.getCity4LevelName(city,userId);
+    }
 }

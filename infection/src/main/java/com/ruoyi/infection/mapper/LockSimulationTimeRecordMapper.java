@@ -15,4 +15,8 @@ public interface LockSimulationTimeRecordMapper {
     Map<String, String> getMaddpgSimulationTimeByTime(@Param("time") String time,@Param("userId")String userId);
 
     Map<String, String> getLatestMaddpgSimulationTime(@Param("city") String city,@Param("userId") String userId);
+    Integer findLatestSimulationId(@Param("city") String city,@Param("userId") String userId);
+    String findFilePathById(@Param("id") Integer id,@Param("userId") String userId);
+    Integer findLockLatestSimulationId(@Param("city") String city,@Param("userId") String userId);
+    String findLockFilePathById(@Param("id") Integer id,@Param("userId") String userId);
 }

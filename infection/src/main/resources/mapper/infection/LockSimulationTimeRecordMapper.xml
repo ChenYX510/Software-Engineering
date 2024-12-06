@@ -42,4 +42,11 @@
         WHERE city_name = #{city} AND state = 'True' AND user_id = #{userId}
         ORDER BY maddpg_result_id DESC LIMIT 1
     </select>
+        <select id="findLatestSimulationId" resultType="Integer">
+        SELECT MAX(unlock_result_id) FROM infection_unlock_simulation_result WHERE city_name = #{city} AND user_id = #{userId}
+    </select>
+
+    <select id="findFilePathById" resultType="String">
+        SELECT filepath FROM infection_unlock_simulation_result WHERE unlock_result_id = #{id} AND user_id = #{userId}
+    </select>
 </mapper>

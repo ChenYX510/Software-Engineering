@@ -25,4 +25,18 @@
         FROM maddpg_simulation_result
         WHERE city_name = #{city} AND user_id = #{userId}
     </select>
+        <select id="findLatestIdByCity" resultType="java.lang.Long">
+        SELECT unlock_result_id FROM infection_unlock_simulation_result WHERE city_name = #{city} AND user_id = #{userId} ORDER BY unlock_result_id DESC LIMIT 1
+    </select>
+    <select id="findFilePathById" resultType="java.lang.String">
+        SELECT filepath FROM infection_unlock_simulation_result WHERE unlock_result_id = #{id}
+    </select>
+        <select id="findLockLatestIdByCity" resultType="java.lang.Long">
+        SELECT lock_result_id FROM infection_lock_simulation_result WHERE city_name = #{city} AND user_id = #{userId} ORDER BY lock_result_id DESC LIMIT 1
+    </select>
+    <select id="findLockFilePathById" resultType="java.lang.String">
+        SELECT filepath FROM infection_lock_simulation_result WHERE lock_result_id = #{id}
+    </select>
+
+    
 </mapper>

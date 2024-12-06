@@ -34,6 +34,16 @@
         <artifactId>nd4j-native-platform</artifactId>
         <version>1.0.0-M2.1</version> <!-- 检查最新版本 -->
     </dependency>
+        <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-shapefile</artifactId>
+        <version>25.0</version> <!-- 使用最新稳定版本 -->
+    </dependency>
+    <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-epsg-hsql</artifactId>
+        <version>25.0</version>
+    </dependency>
     </dependencies>
 
 </project>

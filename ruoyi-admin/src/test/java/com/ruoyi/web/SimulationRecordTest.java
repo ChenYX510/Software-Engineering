@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @SpringBootTest
 public class SimulationRecordTest {
@@ -58,6 +59,18 @@ public class SimulationRecordTest {
             } else {
                 System.out.println("  这个城市没有模拟记录");
             }
-        }*/
+        }*//*String city="shanghai"; int simulationDay=1; int simulationHour=1; String simulationFileName="test";String userId="1";
+                Map<String, Object> responseBody = simulationRecordService.getSimulationResult(city,simulationDay, simulationHour,  simulationFileName, userId);
+
+        System.out.println("测试返回数据：" + responseBody);*/
+        String city = "guangzhou";
+        String userId = "1";
+        //int simulationDay = 1;
+        //int simulationHour = 1;
+        //int thresholdInfected = 1;
+        //String simulationFileName = "test";
+
+        Map<String, Object> responseBody =  simulationRecordService.getCity4LevelName(city, userId);
+        System.out.println("测试返回数据：" + responseBody);
     }
 }
