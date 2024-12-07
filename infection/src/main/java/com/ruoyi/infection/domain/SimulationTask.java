@@ -1,18 +1,25 @@
 package com.ruoyi.infection.domain;
+
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SimulationTask {
     private double R0;
     private double I_H_para;
     private double I_R_para;
     private double H_R_para;
+
+    @JsonProperty("I_input")  // 用于将 JSON 中的 I_input 映射到 Java 类中的 I_input
     private String I_input;
+
+    @JsonProperty("region_list")  // 用于将 JSON 中的 region_list 映射到 Java 类中的 regionList
     private String regionList;
+
     private int simulationDays;
     private String lock_area;
     private int lock_day;
     private String simulationCity;
-    private long userId; // 新增字段
+    private long userId;
 
     // Getters and Setters
     public double getR0() {

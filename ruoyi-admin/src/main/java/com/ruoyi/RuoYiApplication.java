@@ -1,15 +1,17 @@
 package com.ruoyi;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
  * 启动程序
- * 
+ *
  * @author ruoyi
  */
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class } ,scanBasePackages = {"com.ruoyi.web.controller.infection","com.ruoyi"})
+@MapperScan({"com.ruoyi.infection.mapper","com.ruoyi.system.mapper"})
 public class RuoYiApplication
 {
     public static void main(String[] args)
