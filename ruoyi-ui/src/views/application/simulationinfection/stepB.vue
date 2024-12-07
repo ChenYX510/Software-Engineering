@@ -362,6 +362,7 @@ import serverInfo from '@/views/simulator/serverInfo';
 
 import infectionInput from "@/views/simulator/components/infection/infectionInput.vue";
 import infectionLock from "@/views/simulator/components/infection/infectionLock.vue";
+import {getToken,setToken} from "../../../utils/auth";
 
 export default {
   name: "stepB",
@@ -385,6 +386,7 @@ export default {
       // 任务类型
       type: "infection",
       infectionModel: "before",
+      userId: this.$store.state.id,
       typeNames: {
         'flood': '暴雨洪涝',
         'infection': '传染病',
@@ -403,12 +405,13 @@ export default {
         "Infectious Range": "0.01",
       },
       infectionParamBefore: {
-        "simulation_city": "guangzhou",
+        "simulationCity": "guangzhou",
         "I_H_para": 0.03,
         "I_R_para": 0.11,
         "H_R_para": 0.11,
         "simulation_days": 1,
         "R0": 15,
+        "userId": this.userId,
       },
       infectionParamMADDPG: {
         "R0": 1.6,
@@ -659,7 +662,7 @@ export default {
       });
 
       let headers = {
-        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${getToken()}` // 将 token 添加到 Authorization 头部
       };
       const service = axios.create({
         baseURL: serverInfo.baseURL_infection,
@@ -667,9 +670,12 @@ export default {
       });
 
       let url = (useLock) ? 'lock_simulation' : 'grid_simulation';
+      console.log(formData);
       service
         .post(url, formData, { headers: headers })
         .then((res) => {
+          // 如果响应中有新的 token，更新 Vuex 中的 token
+          setToken(getToken());
           loading.close();
           if (res.data.status === true) {
             this.$message({
@@ -722,6 +728,7 @@ export default {
           I_input[index] = infection.population;
           region_list[index] = infection.position;
         });
+
         this.infectionParamBefore['I_input'] = JSON.stringify(I_input);
         this.infectionParamBefore['region_list'] = JSON.stringify(region_list);
 
@@ -729,19 +736,27 @@ export default {
         for (let key in this.infectionParamBefore) {
           formData.append(key, this.infectionParamBefore[key]);
         }
+        // 将 FormData 转换为普通对象
+        let formDataObject = {};
+        formData.forEach((value, key) => {
+          formDataObject[key] = value;
+        });
+
+// 将对象转换为 JSON 字符串
+        let formDataString = JSON.stringify(formDataObject);
         // 添加操作时间
         const executionTime = new Date() - this.infectionStartTime;
         this.infectionStartTime = new Date();
 
         // 不封锁区域
         if (!this.useLockInfection) {
-          this.submitInfectionBefore(formData, false);
+          this.submitInfectionBefore(formDataString, false);
         }
         else  // 封锁区域
         {
           // 同时提交不封锁区域任务
           if (this.sumbitBothTask) {
-            this.submitInfectionBefore(formData, false);
+            this.submitInfectionBefore(formDataString, false);
           }
           let formData_lock = new FormData();
           let lock_area = {};
@@ -750,6 +765,7 @@ export default {
           });
           this.infectionParamBefore['lock_area'] = JSON.stringify(lock_area);
           this.infectionParamBefore['lock_day'] = this.infectionLockDay;
+
           for (let key in this.infectionParamBefore) {
             formData_lock.append(key, this.infectionParamBefore[key]);
           }

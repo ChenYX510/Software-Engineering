@@ -1,9 +1,9 @@
-const baseIP = "100.64.226.144";
+const baseIP = 'localhost';
 const serverInfo =
 {
     baseIP: baseIP,
     baseURL: `http://${baseIP}:8000`,
-    baseURL_infection: `http://${baseIP}:8001`,
+    baseURL_infection: `http://${baseIP}:8080`,
     baseURL_measure: `http://${baseIP}:8000`,
     baseURL_three: `http://${baseIP}:8008`,
     baseURL_file: `http://${baseIP}:8006`,

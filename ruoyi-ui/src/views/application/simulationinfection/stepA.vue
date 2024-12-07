@@ -1,4 +1,5 @@
 <!-- 灾害模拟业务流程-步骤一 -->
+<script src="../../simulator/ajaxInfection.js"></script>
 <template>
   <div>
     <div class="title">传染病灾害模拟推演</div>
