@@ -182,6 +182,18 @@
                 <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- 引入infection项目-->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>infection</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
