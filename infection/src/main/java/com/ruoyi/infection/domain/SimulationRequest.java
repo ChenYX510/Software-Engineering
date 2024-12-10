@@ -6,7 +6,7 @@ public class SimulationRequest {
     private Integer simulationHour;
     private Integer thresholdInfected;
     private String simulationFileName;
-
+ 
     // Getter and Setter for city
     public String getuserId() {
         return userId;

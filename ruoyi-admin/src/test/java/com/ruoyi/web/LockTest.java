@@ -3,6 +3,7 @@ import com.ruoyi.infection.service.ILockSimulationService;
 import org.junit.jupiter.api.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import com.ruoyi.infection.domain.SimulationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.nd4j.linalg.factory.Nd4j;
@@ -11,6 +12,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.io.File;
 
 import java.util.List;
+import java.util.Map;
 @SpringBootTest
 public class LockTest {
 
@@ -35,16 +37,21 @@ public class LockTest {
         } else {
             System.out.println("没有该城市的查询结果：" + testCity);
         }*/
-        /*try {
-            // 加载 .npy 文件
-            File npyFile = new File("C:\\Users\\86182\\Desktop\\数据库课设\\Software-Engineering\\ruoyi-admin\\testuser\\1\\SimulationResult\\MADDPG_result\\chongqing\\test\\simulation_DSIHR_result_0.npy");
-            INDArray array = Nd4j.createFromNpyFile(npyFile);
+        String userId="1";
+         String city="chongqing";
+         Integer simulationDay=1;
+         Integer simulationHour=1;
+         Integer thresholdInfected=-1;
+         String simulationFileName="test";
 
-            // 打印数组信息
-            System.out.println("Array shape: " + array.shapeInfoToString());
-            System.out.println("Array data: " + array);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+         SimulationRequest request = new SimulationRequest();
+         request.setuserId(userId);
+         request.setCity(city);
+         request.setSimulationDay(simulationDay);
+         request.setSimulationHour(simulationHour);
+         request.setThresholdInfected(thresholdInfected);
+         request.setSimulationFileName(simulationFileName);
+         Map<String, Object> response = lockSimulationService.getMADDPGRiskPoints(request);
+         System.out.println(response);
     }
 }

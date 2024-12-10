@@ -49,4 +49,26 @@
     <select id="findFilePathById" resultType="String">
         SELECT filepath FROM infection_unlock_simulation_result WHERE unlock_result_id = #{id} AND user_id = #{userId}
     </select>
+     <select id="getLatestSimulationId" resultType="java.lang.Long">
+        SELECT MAX(unlock_result_id) FROM infection_unlock_simulation_result WHERE user_id = #{userId}
+    </select>
+
+    <select id="getPolicyFilePathBySimulationId" resultType="java.lang.String">
+        SELECT filepath FROM maddpg_policy_record WHERE unlock_result_id = #{simulationId}
+    </select>
+
+    <select id="getSimulationIdByFilePath" resultType="java.lang.Long">
+        SELECT unlock_result_id FROM infection_unlock_simulation_result WHERE filepath = #{filePath} AND user_id = #{userId}
+    </select>
+        <select id="getLatestRecordId" resultType="long">
+        SELECT MAX(maddpg_result_id)
+        FROM maddpg_simulation_result
+        WHERE city_name = #{city} AND user_id = #{userId}
+    </select>
+
+    <select id="getFilepathById" resultType="string">
+        SELECT filepath
+        FROM maddpg_simulation_result
+        WHERE maddpg_result_id = #{id}
+    </select>
 </mapper>

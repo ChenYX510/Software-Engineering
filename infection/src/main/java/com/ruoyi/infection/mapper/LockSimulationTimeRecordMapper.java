@@ -19,4 +19,12 @@ public interface LockSimulationTimeRecordMapper {
     String findFilePathById(@Param("id") Integer id,@Param("userId") String userId);
     Integer findLockLatestSimulationId(@Param("city") String city,@Param("userId") String userId);
     String findLockFilePathById(@Param("id") Integer id,@Param("userId") String userId);
+    Long getLatestSimulationId(String userId);
+
+    String getPolicyFilePathBySimulationId(@Param("simulationId") Long simulationId);
+
+    Long getSimulationIdByFilePath(@Param("filePath") String filePath,@Param("userId") String userId);
+    Long getLatestRecordId(@Param("city")String city,@Param("userId") String userId);
+
+    String getFilepathById(Long id);
 }

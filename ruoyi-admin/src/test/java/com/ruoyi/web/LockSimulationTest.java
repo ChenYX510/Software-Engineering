@@ -38,5 +38,12 @@ public class LockSimulationTest {
         Map<String, Object> responseBody = lockSimulationTimeRecordService.getLockAndMaddpgSimulationTime(requestBody);
 
         System.out.println("测试返回数据：" + responseBody);*/
+        //int simulationDay = 1;
+        //int simulationHour = 1;
+        //int thresholdInfected = 1;
+        //String simulationFileName = "test";
+        //String city="chongqing"; int date=1; int time=1; String simulationFileName="test"; String userId="1";
+        //Map<String, Object> responseBody =  lockSimulationTimeRecordService. getMADDPGSimulationResult(city,date, time, simulationFileName, userId);
+        //System.out.println("测试返回数据：" + responseBody);
     }
 }

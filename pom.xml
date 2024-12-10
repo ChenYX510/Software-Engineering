@@ -163,13 +163,19 @@
     <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-shapefile</artifactId>
-        <version>25.0</version> <!-- 使用最新稳定版本 -->
+        <version>28.0</version> <!-- 使用最新稳定版本 -->
     </dependency>
     <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-epsg-hsql</artifactId>
-        <version>25.0</version>
+        <version>28.0</version>
     </dependency>
+    <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-csv</artifactId>
+    <version>1.10.0</version>
+</dependency>
+
 
             <!-- 核心模块-->
             <dependency>

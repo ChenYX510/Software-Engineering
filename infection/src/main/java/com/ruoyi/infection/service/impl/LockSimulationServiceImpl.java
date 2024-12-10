@@ -11,12 +11,15 @@ import com.ruoyi.infection.service.ILockSimulationService;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -108,24 +111,32 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
         int curHour = 0;
         // 循环，直到没有找到文件
         while (true) {
-            File file = new File(dir + "simulation_DSIHR_result_" + curHour + ".npy");
+            File file = new File(dir + "simulation_DSIHR_result_" + curHour + ".csv");
 
             // 检查文件是否存在
             if (!file.exists()) {
                 break;
             }
-            try {
-                // 使用 ND4J 加载 .npy 文件
-                INDArray data = Nd4j.createFromNpyFile(file);
-
-                // 获取数据的第三个元素并计算总和（假设数据是一个多维数组）
-                double sum = data.getRow(2).sumNumber().doubleValue();
-
+            try (Reader reader = new FileReader(file)) {
+                Iterable<CSVRecord> records = CSVFormat.DEFAULT
+                .withHeader("Column1","geometry", "S", "I", "H", "R", "new_infected", "total_num") // 为所有列指定名称
+                .withSkipHeaderRecord(true) // 表头仍然作为数据解析的依据
+                .withTrim()
+                .parse(reader);
+                double sumColumn = 0.0;
+            // 遍历每一行，累加特定列值
+            for (CSVRecord record : records) {
+                try {
+                    double value = Double.parseDouble(record.get(2)); // 假设目标列是索引2
+                    sumColumn += value;
+                } catch (NumberFormatException e) {
+                    System.err.println("Skipping invalid number in file: " + file);
+                }
+            }
                 // 将结果添加到列表
-                result.add(sum);
+                result.add(sumColumn);
             } catch (Exception e) {
                 e.printStackTrace();
-                break;
             }
             curHour++;
         }
@@ -210,7 +221,7 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
         }
 
         simulationHour = (simulationDay - 1) * 24 + (simulationHour - 1);
-        String filePath = baseDir + "simulation_DSIHR_result_" + simulationHour + ".npy";
+        String filePath = baseDir + "simulation_DSIHR_result_" + simulationHour + ".csv";
 
         File file = new File(filePath);
         if (!file.exists()) {
@@ -218,28 +229,38 @@ public class LockSimulationServiceImpl implements ILockSimulationService {
             return response;
         }
 
-        // 读取 .npy 文件
-        INDArray simulationResult;
-        try {
-            simulationResult = Nd4j.createFromNpyFile(file);
-        } catch (Exception e) {
-            response.put("msg", "读取 .npy 文件失败");
-            return response;
-        }
-
-        INDArray iDataArray = simulationResult.getRow(2);
         List<List<Object>> result = new ArrayList<>();
-        for (int i = 0; i < iDataArray.columns(); i++) {
-            int infectedCount = iDataArray.getInt(i);
-            if (infectedCount >= thresholdInfected) {
-                result.add(Arrays.asList(i, infectedCount));
+        try (Reader reader = new FileReader(file)) {
+            Iterable<CSVRecord> records = CSVFormat.DEFAULT
+            .withHeader("Column1","geometry", "S", "I", "H", "R", "new_infected", "total_num") // 为所有列指定名称
+            .withSkipHeaderRecord(true) // 表头仍然作为数据解析的依据
+            .withTrim()
+            .parse(reader);
+            int index = 0;
+            for (CSVRecord record : records) {
+                try {
+                    // 假设目标列是索引 2 (感染人数)
+                    double infectedCount = Double.parseDouble(record.get(2));
+                    if (infectedCount >= thresholdInfected) {
+                        // 将索引和感染人数存入 result，符合定义 List<List<Object>>
+                        List<Object> entry = new ArrayList<>();
+                        entry.add(index); // 索引
+                        entry.add(infectedCount); // 感染人数
+                        result.add(entry);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Skipping invalid number in file: " + filePath);
+                }
+                index++;
             }
-        }
-
-        if (result.isEmpty()) {
-            response.put("msg", "没有超过阈值的网格");
-        } else {
-            response.put("msg", "success");
+            if (result.isEmpty()) {
+                response.put("msg", "没有超过阈值的网格");
+            } else {
+                response.put("msg", "success");
+            }
+        } catch (Exception e) {
+            response.put("msg", "读取 .csv 文件失败");
+            return response;
         }
         response.put("result", result);
         return response;

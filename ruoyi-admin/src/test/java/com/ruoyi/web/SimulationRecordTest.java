@@ -63,14 +63,14 @@ public class SimulationRecordTest {
                 Map<String, Object> responseBody = simulationRecordService.getSimulationResult(city,simulationDay, simulationHour,  simulationFileName, userId);
 
         System.out.println("测试返回数据：" + responseBody);*/
-        String city = "guangzhou";
-        String userId = "1";
+        //String city = "guangzhou";
+        //String userId = "1";
         //int simulationDay = 1;
         //int simulationHour = 1;
         //int thresholdInfected = 1;
         //String simulationFileName = "test";
 
-        Map<String, Object> responseBody =  simulationRecordService.getCity4LevelName(city, userId);
-        System.out.println("测试返回数据：" + responseBody);
+        //Map<String, Object> responseBody =  simulationRecordService.getCity4LevelName(city, userId);
+        //System.out.println("测试返回数据：" + responseBody);
     }
 }
