@@ -5,7 +5,7 @@
 
 <mapper namespace="com.ruoyi.infection.mapper.MADDPGSimulationMapper">
     <!-- 查询最新的 simulation_id -->
-    <!--<select id="getLatestPolicyId" resultType="Integer">
+    <select id="getLatestSimulationId" resultType="Integer">
         SELECT unlock_result_id
         FROM maddpg_policy_record
         WHERE policy_id = (
@@ -15,25 +15,25 @@
         )
     </select>
 
-    &lt;!&ndash; 根据 simulation_id 获取 policy 文件名 &ndash;&gt;
+    <!-- 根据 simulation_id 获取 policy 文件名 -->
     <select id="getPolicyFileNameBySimulationId" resultType="java.lang.String">
         SELECT filepath
-        FROM MADDPG_policy_record
-        WHERE simulation_id = #{simulationFileId}
+        FROM maddpg_policy_record
+        WHERE unlock_result_id = #{unlockSimulationId} AND user_id = #{userId}
     </select>
 
-    &lt;!&ndash; 根据 simulation_id 获取查询文件名 &ndash;&gt;
+    <!-- 根据 simulation_id 获取查询文件名 -->
     <select id="getQueryFileNameBySimulationId" resultType="java.lang.String">
         SELECT filepath
-        FROM simulation_record
-        WHERE id = #{simulationFileId}
+        FROM infection_unlock_simulation_result
+        WHERE unlock_result_id = #{unlockSimulationId} AND user_id = #{userId}
     </select>
 
-    &lt;!&ndash; 根据文件路径获取 simulation_id &ndash;&gt;
-    <select id="getSimulationFileIdByFilePath" resultType="java.lang.Long">
-        SELECT id
-        FROM simulation_record
-        WHERE filepath = #{simulationFileName}
-    </select>-->
+    <!-- 根据文件路径获取 simulation_id -->
+    <select id="getSimulationIdByFilePath" resultType="java.lang.Long">
+        SELECT unlock_result_id
+        FROM infection_unlock_simulation_result
+        WHERE filepath = #{simulationFileName} AND user_id = #{userId}
+    </select>
 
 </mapper>

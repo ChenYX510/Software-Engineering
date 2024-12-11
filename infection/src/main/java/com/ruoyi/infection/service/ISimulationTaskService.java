@@ -6,5 +6,6 @@ import java.util.Map;
 public interface ISimulationTaskService {
     Map<String, Object> unlockSimulationTask(SimulationTask request);
     Map<String, Object> lockSimulationTask(SimulationTask request);
+    Map<String, Object> MADDPGSimulationTask(SimulationTask request);
 }
 

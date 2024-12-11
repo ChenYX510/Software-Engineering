@@ -12,13 +12,15 @@ public class SimulationTask {
     @JsonProperty("I_input")  // 用于将 JSON 中的 I_input 映射到 Java 类中的 I_input
     private String I_input;
 
-    @JsonProperty("region_list")  // 用于将 JSON 中的 region_list 映射到 Java 类中的 regionList
+    @JsonProperty("regionList")  // 用于将 JSON 中的 region_list 映射到 Java 类中的 regionList
     private String regionList;
 
     private int simulationDays;
     private String lock_area;
     private int lock_day;
     private String simulationCity;
+
+    private  String simulationFileName;
     private long userId;
 
     // Getters and Setters
@@ -26,32 +28,32 @@ public class SimulationTask {
         return R0;
     }
 
-    public void setR0(double R0) {
-        this.R0 = R0;
+    public void setR0(String R0) {
+        this.R0 = Double.parseDouble(R0);
     }
 
     public double getI_H_para() {
         return I_H_para;
     }
 
-    public void setI_H_para(double I_H_para) {
-        this.I_H_para = I_H_para;
+    public void setI_H_para(String I_H_para) {
+        this.I_H_para = Double.parseDouble(I_H_para);
     }
 
     public double getI_R_para() {
         return I_R_para;
     }
 
-    public void setI_R_para(double I_R_para) {
-        this.I_R_para = I_R_para;
+    public void setI_R_para(String I_R_para) {
+        this.I_R_para = Double.parseDouble(I_R_para);
     }
 
     public double getH_R_para() {
         return H_R_para;
     }
 
-    public void setH_R_para(double H_R_para) {
-        this.H_R_para = H_R_para;
+    public void setH_R_para(String H_R_para) {
+        this.H_R_para = Double.parseDouble(H_R_para);
     }
 
     public String getI_input() {
@@ -82,16 +84,16 @@ public class SimulationTask {
         return lock_day;
     }
 
-    public void setLock_day(int lock_day) {
-        this.lock_day = lock_day;
+    public void setLock_day(String lock_day) {
+        this.lock_day = Integer.parseInt(lock_day);
     }
 
     public int getSimulationDays() {
         return simulationDays;
     }
 
-    public void setSimulationDays(int simulationDays) {
-        this.simulationDays = simulationDays;
+    public void setSimulationDays(String simulationDays) {
+        this.simulationDays = Integer.parseInt(simulationDays);
     }
 
     public String getSimulationCity() {
@@ -102,11 +104,19 @@ public class SimulationTask {
         this.simulationCity = simulationCity;
     }
 
+    public String getSimulationFileName() {
+        return simulationFileName;
+    }
+
+    public void setSimulationFileName(String I_input) {
+        this.simulationFileName = simulationFileName;
+    }
+
     public long getUserId() {
         return userId;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setUserId(String userId) {
+        this.userId = Long.parseLong(userId);
     }
 }

@@ -22,13 +22,23 @@
                 user_id, lock_result_id, filepath, city_name, state
             </when>
             <when test="resultTable == 'maddpg_simulation_result'">
-                user_id, maddpg_result_id, filepath, city_name, state
+                user_id, maddpg_result_id, filepath, city_name, state, policy_id
             </when>
         </choose>
         )
         VALUES
         (
-        #{userId}, #{resultId}, #{filepath}, #{cityName}, #{state}
+        <choose>
+            <when test="resultTable == 'infection_unlock_simulation_result'">
+                #{userId}, #{resultId}, #{filepath}, #{cityName}, #{state}
+            </when>
+            <when test="resultTable == 'infection_lock_simulation_result'">
+                #{userId}, #{resultId}, #{filepath}, #{cityName}, #{state}
+            </when>
+            <when test="resultTable == 'maddpg_simulation_result'">
+                #{userId}, #{resultId}, #{filepath}, #{cityName}, #{state}, #{policyId}
+            </when>
+        </choose>
         )
     </insert>
 
@@ -39,30 +49,68 @@
         WHERE filepath = #{filepath} AND ${resultColumn}_id = #{resultId}
     </update>
 
-    <!-- 查询 `maddpg_simulation_result` 表中最大的 ID -->
+<!--    &lt;!&ndash; 查询 `maddpg_simulation_result` 表中最大的 ID &ndash;&gt;
     <select id="getMaxMADDPGRecordId" resultType="Integer">
         SELECT MAX(maddpg_result_id)
         FROM maddpg_simulation_result
         WHERE user_id = #{userId}
     </select>
 
-    <!-- 插入一条新记录到 `maddpg_simulation_result` -->
+    &lt;!&ndash; 插入一条新记录到 `maddpg_simulation_result` &ndash;&gt;
     <insert id="insertMADDPGSimulationRecord">
         INSERT INTO maddpg_simulation_result (user_id, maddpg_result_id, maddpg_start_time, maddpg_end_time, state, city_name, simulation_end_time, simulation_start_time)
         VALUES (#{userId}, #{id}, #{startTime}, #{endTime}, #{state}, #{city}, #{simulationEndTime}, #{simulationStartTime})
-    </insert>
+    </insert>-->
 
     <!-- 查询 `MADDPG_policy_record` 表中最大的 ID -->
     <select id="getMaxPolicyRecordId" resultType="Integer">
         SELECT MAX(policy_id)
-        FROM MADDPG_policy_record
+        FROM maddpg_policy_record
         WHERE user_id = #{userId}
     </select>
 
     <!-- 插入一条新记录到 `MADDPG_policy_record` -->
     <insert id="insertPolicyRecord">
-        INSERT INTO MADDPG_policy_record (policy_id, filepath, user_id, unlock_result_id)
-        VALUES (#{id}, #{filepath}, #{userId}, #{simulationId})
+        INSERT INTO maddpg_policy_record (policy_id, filepath, user_id, unlock_result_id, policy_start_time, policy_end_time)
+        VALUES (#{id}, #{filepath}, #{userId}, #{simulationId}, #{startTime}, #{endTime})
     </insert>
+
+    <select id="getPolicyIdByUnlockSimulationId" resultType="Integer">
+        SELECT policy_id
+        FROM maddpg_policy_record
+        WHERE unlock_result_id = #{unlockSimulationId} AND user_id = #{userId}
+    </select>
+
+    <!-- 查询最新的 simulation_id -->
+    <select id="getLatestSimulationIdFromPolicy" resultType="Integer">
+        SELECT unlock_result_id
+        FROM maddpg_policy_record
+        WHERE policy_id = (
+        SELECT MAX(policy_id)
+        FROM maddpg_policy_record
+        WHERE user_id = #{userId}
+        )
+    </select>
+
+    <!-- 根据 policy_id 获取 policy 文件名 -->
+    <select id="getPolicyFileNameByPolicyId" resultType="java.lang.String">
+        SELECT filepath
+        FROM maddpg_policy_record
+        WHERE policy_id = #{policyId} AND user_id = #{userId}
+    </select>
+
+    <!-- 根据 simulation_id 获取查询文件名 -->
+    <select id="getQueryFileNameBySimulationId" resultType="java.lang.String">
+        SELECT filepath
+        FROM infection_unlock_simulation_result
+        WHERE unlock_result_id = #{unlockSimulationId} AND user_id = #{userId}
+    </select>
+
+    <!-- 根据文件路径获取 simulation_id -->
+    <select id="getSimulationIdByFilePath" resultType="java.lang.Long">
+        SELECT unlock_result_id
+        FROM infection_unlock_simulation_result
+        WHERE filepath = #{simulationFileName} AND user_id = #{userId}
+    </select>
 
 </mapper>
