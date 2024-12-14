@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.List;
 
 @SpringBootTest
-public class LockSimulationTest {
+public class MADDPGSimulationTest {
     @Autowired
     private ISimulationTaskService simulationTaskService;
 
@@ -18,20 +18,12 @@ public class LockSimulationTest {
     public void testRunSimulation(){
         // 创建 SimulationTask 对象并设置参数
         SimulationTask request = new SimulationTask();
-        request.setR0("2.5");
-        request.setI_H_para("0.2");
-        request.setI_R_para("0.1");
-        request.setH_R_para("0.05");
-        request.setI_input("{\"0\": 9, \"1\": 6}");
-        request.setRegionList("{\"0\": [113.373708, 23.12986], \"1\": [113.298808, 23.08986]}");
-        request.setSimulationDays("1");
+        request.setSimulationFileName("2024-12-14_00_42_14");
         request.setSimulationCity("chongqing");
         request.setUserId("1");
-        request.setLock_area("{\"0\": [113.38578, 23.32171], \"1\": [113.41566, 23.29624]}");
-        request.setLock_day("1");
 
         // 调用服务层方法运行模拟任务
-        Map<String, Object> result = simulationTaskService.lockSimulationTask(request);
+        Map<String, Object> result = simulationTaskService.MADDPGSimulationTask(request);
 
 
         // 输出返回结果

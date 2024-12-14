@@ -208,6 +208,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
 
     }
 
+    // 强化学习动态封控下的模拟
     public Map<String, Object> MADDPGSimulationTask(SimulationTask request){
         Map<String, Object> result = new HashMap<>();
 
@@ -215,13 +216,18 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
         String simulationFileName = request.getSimulationFileName();
         long userId = request.getUserId();
 
+        // 如果没有文件名称，则默认取最新一次的模拟
         if (simulationFileName == null || simulationFileName.isEmpty()) {
             simulationFileName = "latestRecord"; // 默认为最新记录
         }
 
+        // 无封控模拟id
         Integer unlockSimulationId = null;
+        // 强化学习策略id
         Integer policyId = null;
+        // 策略文件名称
         String policyFileName = null;
+        // 用于查询的文件名称，就是当前无封控模拟结果的文件名
         String queryFileName = null;
 
         try {
@@ -276,10 +282,20 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             double I_H_para = Double.parseDouble(paraJson.get("I_H_para").toString());
             double I_R_para = Double.parseDouble(paraJson.get("I_R_para").toString());
             double H_R_para = Double.parseDouble(paraJson.get("H_R_para").toString());
-            String I_input = paraJson.get("I_input").toString();
-            String regionList = paraJson.get("region_list").toString();
+
+            // 获取 I_input 并转换为 JSON 字符串
+            Map<String, Integer> I_inputMap = (Map<String, Integer>) paraJson.get("I_input");
+            String I_input = objectMapper.writeValueAsString(I_inputMap);  // 转换为 JSON 格式字符串
+
+            // 获取 regionList 并转换为 JSON 字符串
+            Map<String, Integer> regionListMap = (Map<String, Integer>) paraJson.get("region_list");
+            String regionList = objectMapper.writeValueAsString(regionListMap);  // 转换为 JSON 格式字符串
+            
             int simulationDays = Integer.parseInt(paraJson.get("simulation_days").toString());
             String simulationCity = paraJson.get("simulation_city").toString();
+
+            System.out.println("I_input: " + I_input);  // 输出 I_input 为 JSON 格式字符串
+
 
             // 开始模拟
             String msg = "start MADDPG_simulate";
@@ -295,6 +311,7 @@ public class SimulationTaskServiceImpl implements ISimulationTaskService {
             int resultId = 0;
             if ("start MADDPG_simulate".equals(msg)) {
                 logger.info("MADDPG_start!");
+                // 模拟结果文件的储存目录，就是开始模拟的时间
                 curDirName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss"));
                 resultId = getResultId(userId, "MADDPG_type");
                 // 在数据库创建一条新的模拟记录

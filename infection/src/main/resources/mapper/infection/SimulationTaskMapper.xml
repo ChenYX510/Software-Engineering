@@ -86,9 +86,9 @@
         SELECT unlock_result_id
         FROM maddpg_policy_record
         WHERE policy_id = (
-        SELECT MAX(policy_id)
-        FROM maddpg_policy_record
-        WHERE user_id = #{userId}
+            SELECT MAX(policy_id)
+            FROM maddpg_policy_record
+            WHERE user_id = #{userId}
         )
     </select>
 

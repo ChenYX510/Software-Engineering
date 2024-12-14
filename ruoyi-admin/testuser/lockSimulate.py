@@ -28,6 +28,11 @@ def lock_simulation_task(R0, I_H_para, I_R_para, H_R_para, I_input, region_list,
     output_dir = f'./SimulationResult/lock_result/{simulation_city}/{cur_dir_name}'
     os.makedirs(output_dir, exist_ok=True)
 
+    R0 /= 24
+    I_H_para /= 24
+    I_R_para /= 24
+    H_R_para /= 24
+
     # 保存初始参数到 JSON
     data = {
         "R0": R0,
@@ -156,9 +161,9 @@ def simulate_step(time_index, S_0, I_0, H_0, R_0, N_0, OD, simulation_para, grid
     grid_length = len(S_0)
 
     # 计算人口流动占比，返回numpy数组
-    S_temp = np.divide(S_0, move_people, out=np.zeros_like(S_0), where=move_people > 0)
-    I_temp = np.divide(I_0, move_people, out=np.zeros_like(I_0), where=move_people > 0)
-    R_temp = np.divide(R_0, move_people, out=np.zeros_like(R_0), where=move_people > 0)
+    S_temp = np.divide(S_0, move_people, out=np.zeros_like(S_0), where=move_people != 0)
+    I_temp = np.divide(I_0, move_people, out=np.zeros_like(I_0), where=move_people != 0)
+    R_temp = np.divide(R_0, move_people, out=np.zeros_like(R_0), where=move_people != 0)
 
     # 计算流动人口分布
     S_people = S_temp * OD
@@ -185,13 +190,12 @@ def simulate_step(time_index, S_0, I_0, H_0, R_0, N_0, OD, simulation_para, grid
         R0 * 0.01 * S_people.sum(axis=0) * I_people.sum(axis=0),
         OD.sum(axis=0),
         out=np.zeros_like(S_people.sum(axis=0)),
-        where=(OD.sum(axis=0) > 0),
-    )
+        where=(OD.sum(axis=0) != 0),
+        )
     s_infected = np.divide(
-        R0 * 0.01 * S_0 * I_0,
-        N_0,
-        out=np.zeros_like(S_0),
-        where=(N_0 > 0),
+        R0 * 0.01 * np.around(S_0, 4) * np.around(I_0, 4),
+        np.around(N_0, 4),
+        where=np.around(N_0, 4) != 0
     )
     new_infected = m_infected + s_infected
 
@@ -219,6 +223,12 @@ def simulate_step(time_index, S_0, I_0, H_0, R_0, N_0, OD, simulation_para, grid
         f"{output_dir}/simulation_DSIHR_result_{time_index}.npy",
         np.vstack((grid_array, S_0, I_0, H_0, R_0, new_infected, N_0)),
     )
+    # 保存csv格式，方便其他功能调用
+    simulation_result = np.load(f"{output_dir}/simulation_DSIHR_result_{time_index}.npy", allow_pickle=True)
+    simulation_result = simulation_result.T
+    simulation_result = pd.DataFrame(simulation_result)
+    simulation_result.columns = ['geometry', 'S', 'I', 'H', 'R', 'new_infected', 'total_num']
+    simulation_result.to_csv(f"{output_dir}/simulation_DSIHR_result_{time_index}.csv")
 
     return S_0, I_0, H_0, R_0
 
