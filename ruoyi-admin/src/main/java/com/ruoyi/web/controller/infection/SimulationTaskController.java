@@ -35,4 +35,14 @@ public class SimulationTaskController {
             return AjaxResult.error("Simulation failed: " + e.getMessage());
         }
     }
+
+    @PostMapping("/MADDPG_simulation")
+    public AjaxResult MADDPGSimulate(@RequestBody SimulationTask request) {
+        try {
+            Map<String, Object> result = simulationTaskService.MADDPGSimulationTask(request);
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error("Simulation failed: " + e.getMessage());
+        }
+    }
 }
