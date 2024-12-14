@@ -15,8 +15,8 @@ const user = {
     SET_TOKEN: (state, token) => {
       state.token = token
     },
-    SET_ID: (state, id) => {
-      state.id = id
+    SET_ID: (state, userId) => {
+      state.id = userId
     },
     SET_NAME: (state, name) => {
       state.name = name
@@ -42,6 +42,7 @@ const user = {
       return new Promise((resolve, reject) => {
         login(username, password, code, uuid).then(res => {
           setToken(res.token)
+          commit('SET_ID', user.userId)
           commit('SET_TOKEN', res.token)
           resolve()
         }).catch(error => {

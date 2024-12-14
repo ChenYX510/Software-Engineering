@@ -363,6 +363,7 @@ import serverInfo from '@/views/simulator/serverInfo';
 import infectionInput from "@/views/simulator/components/infection/infectionInput.vue";
 import infectionLock from "@/views/simulator/components/infection/infectionLock.vue";
 import {getToken,setToken} from "../../../utils/auth";
+import store from "@/store"
 
 export default {
   name: "stepB",
@@ -386,7 +387,7 @@ export default {
       // 任务类型
       type: "infection",
       infectionModel: "before",
-      userId: this.$store.state.id,
+      userId: store.state.user.id,
       typeNames: {
         'flood': '暴雨洪涝',
         'infection': '传染病',
@@ -405,13 +406,12 @@ export default {
         "Infectious Range": "0.01",
       },
       infectionParamBefore: {
-        "simulationCity": "guangzhou",
+        //"simulationCity": "chongqing",
         "I_H_para": 0.03,
         "I_R_para": 0.11,
         "H_R_para": 0.11,
         "simulation_days": 1,
         "R0": 15,
-        "userId": this.userId,
       },
       infectionParamMADDPG: {
         "R0": 1.6,
@@ -671,19 +671,26 @@ export default {
 
       let url = (useLock) ? 'lock_simulation' : 'grid_simulation';
       console.log(formData);
-      service
+        service
         .post(url, formData, { headers: headers })
         .then((res) => {
           // 如果响应中有新的 token，更新 Vuex 中的 token
           setToken(getToken());
+          console.log("test");
           loading.close();
-          if (res.data.status === true) {
+          if (res.data.data.status === true) {
+            console.log("true");
             this.$message({
               message: "传染病模拟任务上传成功",
               type: "success",
             });
           }
           else {
+            console.log("false");
+            console.log(res);
+            console.log(res.data);  // 查看data内容
+            console.log(res.data.status);  // 确认status是否存在
+
             this.$message({
               message: res.data.msg,
               type: "warning",
@@ -721,7 +728,7 @@ export default {
           return this.$message.error("模拟总天数必须大于0");
         }
 
-        this.infectionParamBefore["simulation_city"] = this.area[1];
+        this.infectionParamBefore["simulationCity"] = this.area[1];
 
         let I_input = {}, region_list = {};
         this.initInfectionList.forEach((infection, index) => {
@@ -730,7 +737,13 @@ export default {
         });
 
         this.infectionParamBefore['I_input'] = JSON.stringify(I_input);
-        this.infectionParamBefore['region_list'] = JSON.stringify(region_list);
+        this.infectionParamBefore['regionList'] = JSON.stringify(region_list);
+        this.$store.dispatch("GetInfo").then(() => {
+          console.log("获取用户信息成功");
+          console.log(this.userId);
+        }).catch(() => {});
+        this.infectionParamBefore['userId'] = this.userId;
+
 
         let formData = new FormData();
         for (let key in this.infectionParamBefore) {
