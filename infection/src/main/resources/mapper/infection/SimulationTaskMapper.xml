@@ -55,13 +55,13 @@
     <!-- 查询 `MADDPG_policy_record` 表中最大的 ID -->
     <select id="getMaxPolicyRecordId" resultType="Integer">
         SELECT MAX(policy_id)
-        FROM MADDPG_policy_record
+        FROM maddpg_policy_record
         WHERE user_id = #{userId}
     </select>
 
     <!-- 插入一条新记录到 `MADDPG_policy_record` -->
     <insert id="insertPolicyRecord">
-        INSERT INTO MADDPG_policy_record (policy_id, filepath, user_id, unlock_result_id)
+        INSERT INTO maddpg_policy_record (policy_id, filepath, user_id, unlock_result_id)
         VALUES (#{id}, #{filepath}, #{userId}, #{simulationId})
     </insert>
 

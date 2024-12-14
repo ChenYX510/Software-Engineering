@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.infection.mapper.MADDPGSimulationMapper">
+    <!-- 查询最新的 simulation_id -->
+    <!--<select id="getLatestPolicyId" resultType="Integer">
+        SELECT unlock_result_id
+        FROM maddpg_policy_record
+        WHERE policy_id = (
+            SELECT MAX(policy_id)
+            FROM maddpg_policy_record
+            WHERE user_id = #{userId}
+        )
+    </select>
+
+    &lt;!&ndash; 根据 simulation_id 获取 policy 文件名 &ndash;&gt;
+    <select id="getPolicyFileNameBySimulationId" resultType="java.lang.String">
+        SELECT filepath
+        FROM MADDPG_policy_record
+        WHERE simulation_id = #{simulationFileId}
+    </select>
+
+    &lt;!&ndash; 根据 simulation_id 获取查询文件名 &ndash;&gt;
+    <select id="getQueryFileNameBySimulationId" resultType="java.lang.String">
+        SELECT filepath
+        FROM simulation_record
+        WHERE id = #{simulationFileId}
+    </select>
+
+    &lt;!&ndash; 根据文件路径获取 simulation_id &ndash;&gt;
+    <select id="getSimulationFileIdByFilePath" resultType="java.lang.Long">
+        SELECT id
+        FROM simulation_record
+        WHERE filepath = #{simulationFileName}
+    </select>-->
+
+</mapper>

@@ -7,11 +7,11 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
  * 启动程序
- * 
+ *
  * @author ruoyi
  */
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class } ,scanBasePackages = {"com.ruoyi.infection","com.ruoyi"})
-@MapperScan("com.ruoyi.infection.mapper")
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class } ,scanBasePackages = {"com.ruoyi.web.controller.infection","com.ruoyi"})
+@MapperScan({"com.ruoyi.infection.mapper","com.ruoyi.system.mapper"})
 public class RuoYiApplication
 {
     public static void main(String[] args)
