@@ -835,7 +835,8 @@ export function getInfectionTotalPopulation(bindThis, lockType,fileName, store, 
         timeout: 16000000,
     });
     let formData = new FormData();
-    formData.append("city", that.city);
+  formData.append("city", that.city);
+  formData.append("userId", that.userId);
     if(fileName)
         formData.append("simulation_file_name", fileName);
 
@@ -860,6 +861,10 @@ export function getInfectionTotalPopulation(bindThis, lockType,fileName, store, 
                 if (callback) {
                     callback(res.data.result);
                 }
+                that.$message({
+                  message: "获得每小时的感染总人数成功:" + res.data.msg,
+                  type: "success",
+                });
             }
             else{
                 that.$message({

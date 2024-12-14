@@ -120,7 +120,8 @@ import infectionSimulation from "@/views/simulator/components/infection/infectio
 // 图表相关函数
 import *  as chartUtils from '@/views/application/chartUtils'
 // 后端请求相关函数
-import *  as requestUtils from '@/views/application/requestUtils'
+  import *  as requestUtils from '@/views/application/requestUtils'
+  import store from "@/store"
 
 export default {
   name: "stepB",
@@ -165,9 +166,15 @@ export default {
           useZoom: true
         },
       riskSource: null,
+      userId: store.state.user.id,
     };
   },
-  created() { },
+    created() {
+      this.$store.dispatch("GetInfo").then(() => {
+        console.log("获取用户信息成功");
+        console.log(this.userId);
+      }).catch(() => { });
+    },
   mounted() {
     console.warn(this.task);
     this.loadTaskData(this.task);

@@ -298,12 +298,12 @@
             </el-table-column> -->
               <el-table-column label="模拟总时长" align="center" :show-overflow-tooltip="true" width="100">
                 <template slot-scope="scope">
-                  <span>{{ scope.row.para_json.simulation_days * 24 }}</span>
+                  <span>{{ scope.row.paraJson.simulation_days * 24 }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="基本繁殖数" align="center" :show-overflow-tooltip="true" width="100">
                 <template slot-scope="scope">
-                  <span>{{ scope.row.para_json.R0 }}</span>
+                  <span>{{ scope.row.paraJson.R0 }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="状态" align="center" width="80" prop="simulationDate">
@@ -479,12 +479,17 @@ export default {
       tableKey: 0,
     };
   },
-  created() { },
+  created() {
+      this.$store.dispatch("GetInfo").then(() => {
+        console.log("获取用户信息成功");
+        console.log(this.userId);
+      }).catch(() => { });
+  },
   mounted() {
     this.area = ["", this.city];
-    this.inquireCityInfectionSimulation(0);
-    this.inquireCityInfectionSimulation(1);
-    this.inquireCityInfectionSimulation(2);
+    this.inquireCityInfectionSimulation(this.userId, 0);
+    this.inquireCityInfectionSimulation(this.userId, 1);
+    this.inquireCityInfectionSimulation(this.userId, 2);
   },
   methods: {
     // 根据拼音获取城市名
@@ -516,10 +521,10 @@ export default {
       this.infectionParamBefore['R0'] = R0s[option];
     },
     // 获取传染病模拟任务列表
-    inquireCityInfectionSimulation(lockType = 0) {
+    inquireCityInfectionSimulation(userId, lockType = 0) {
 
       let headers = {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/x-www-form-urlencoded",
       };
       const service = axios.create({
         baseURL: serverInfo.baseURL_infection,
@@ -547,8 +552,13 @@ export default {
         return items;
       }
 
+      // 使用 URLSearchParams 来构造表单数据
+      const formData = new URLSearchParams();
+      formData.append('userId', userId); // 将 userId 作为表单数据添加
+
+
       service
-        .post(url, { headers: headers })
+        .post(url, formData,{ headers: headers })
         .then((res) => {
           if (res.data.msg === "success") {
             this.$message({
@@ -556,14 +566,14 @@ export default {
               type: "success",
             });
             res.data.simulation_task.forEach((task) => {
-              if (task.simulation_record_num > 0 && task.simulation_record.length > 0) {   // 该城市存在传染病模拟任务
-                task.simulation_record.forEach((record) => {
+              if (task.simulationRecordNum > 0 && task.simulationRecord.length > 0) {   // 该城市存在传染病模拟任务
+                task.simulationRecord.forEach((record) => {
                   record.city = task.city;
                   record.simulationType = "infection";
-                  record.simulationTime_str = record.simulation_time;
-                  record.simulationTime = convertTime(record.simulation_time);
+                  record.simulationTime_str = record.simulationTime;
+                  record.simulationTime = convertTime(record.simulationTime);
                   record.lockType = lockType;
-                  if (record.task_state === "True")
+                  if (record.taskState === "True")
                     record.status = "finish";
                   else
                     record.status = "processing";
@@ -573,8 +583,8 @@ export default {
 
             });
             this.infectionSimulationList.sort((a, b) => {
-              const timeItems1 = parseTime(a.simulation_time);
-              const timeItems2 = parseTime(b.simulation_time);
+              const timeItems1 = parseTime(a.simulationTime);
+              const timeItems2 = parseTime(b.simulationTime);
               for (let i = 0; i < timeItems1.length; ++i) {
                 if (timeItems1[i] !== timeItems2[i]) {
                   return timeItems1[i] - timeItems2[i];
@@ -677,6 +687,8 @@ export default {
           // 如果响应中有新的 token，更新 Vuex 中的 token
           setToken(getToken());
           console.log("test");
+          console.log(res);
+          console.log(res.data);  // 查看data内容
           loading.close();
           if (res.data.data.status === true) {
             console.log("true");
@@ -687,9 +699,7 @@ export default {
           }
           else {
             console.log("false");
-            console.log(res);
-            console.log(res.data);  // 查看data内容
-            console.log(res.data.status);  // 确认status是否存在
+         
 
             this.$message({
               message: res.data.msg,
