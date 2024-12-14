@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
@@ -32,7 +33,7 @@ import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
-
+import java.io.InputStreamReader;
 import java.util.*;
 
 @Service
@@ -492,6 +493,60 @@ public class SimulationRecordServiceImpl implements ISimulationRecordService {
         }
 
         return response;
+    }
+    @Override
+        public Map<String, Object> getDSIHR(String file,double I_H_para,double I_R_para,double H_R_para,String userId) {
+
+            String pythonExecutable = "C:\\Users\\86182\\anaconda3\\python.exe";  // 或者直接指定完整路径
+            String scriptPath = "C:\\Users\\86182\\Desktop\\数据库课设\\Software-Engineering\\ruoyi-admin\\testuser\\getDSIHR.py";
+            // 处理结果
+             // 调用函数
+             Map<String, Object> result = callPythonScript(pythonExecutable, scriptPath, I_H_para, I_R_para, H_R_para,file);
+
+
+        return result;
+    }
+    public static Map<String, Object> callPythonScript(String pythonExecutable, String scriptPath,
+                                                       double I_H_para, double I_R_para, double H_R_para,
+                                                       String filepath) {
+        ProcessBuilder pb;
+        Process process;
+        BufferedReader reader;
+        StringBuilder output = new StringBuilder();
+        Gson gson = new Gson();
+
+        try {
+            // 构建命令行参数
+            String[] command = {pythonExecutable, scriptPath,
+                                Double.toString(I_H_para), Double.toString(I_R_para),
+                                Double.toString(H_R_para), filepath};
+
+            // 创建进程构建器并启动进程
+            pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);  // 合并标准输出和标准错误流
+            process = pb.start();
+
+            // 读取输出
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line);
+            }
+
+            // 等待进程结束并获取退出码
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                System.err.println("Python script exited with error code: " + exitCode);
+                return null;  // 或者抛出异常
+            }
+            System.out.println("Python script output: " + output.toString());
+            // 将 JSON 字符串转换为 Map
+            return gson.fromJson(output.toString(), HashMap.class);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
 
