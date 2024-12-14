@@ -64,10 +64,17 @@
             <artifactId>nd4j-api</artifactId>
             <version>1.0.0-M2.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.nd4j</groupId>
             <artifactId>nd4j-native-platform</artifactId>
             <version>1.0.0-M2.1</version> <!-- 确保版本号与主 Nd4j 版本一致 -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.10.0</version>
         </dependency>
 
 
