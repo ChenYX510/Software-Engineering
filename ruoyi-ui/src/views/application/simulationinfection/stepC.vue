@@ -4,7 +4,7 @@
     <div class="title">模拟推演结果</div>
     <div class="layout-main">
       <infectionSimulation type="infection" :idSuffix="infectionModel" :infectionModel="infectionModel" :status="status"
-                           :taskList="taskList" @onChangeRisk="onChangeRisk" v-if="loaded" />
+                           :taskList="taskList" :callFunction="onAddInfectionChart" @onChangeRisk="onChangeRisk" v-if="loaded" />
       <div class="chart-container chart-container-infection" style="position:relative;">
         <div id="chartInfection" class="chart"></div>
         <div style="position:absolute; top:3px;right:3px">
@@ -48,49 +48,49 @@
                         <p class="label">
                           模拟总时长：
                         </p>
-                        <p>{{ scope.row.para_json.simulation_days * 24 }}</p>
+                        <p>{{ scope.row.paraJson.simulation_days * 24 }}</p>
                       </div>
                       <div class="line">
                         <p class="label">
                           感染者住院率：
                         </p>
-                        <p>{{ scope.row.para_json.I_H_para }}</p>
+                        <p>{{ scope.row.paraJson.I_H_para }}</p>
                       </div>
                       <div class="line">
                         <p class="label">
                           感染者自愈率：
                         </p>
-                        <p>{{ scope.row.para_json.I_R_para }}</p>
+                        <p>{{ scope.row.paraJson.I_R_para }}</p>
                       </div>
                       <div class="line">
                         <p class="label">
                           住院者治愈率：
                         </p>
-                        <p>{{ scope.row.para_json.H_R_para }}</p>
+                        <p>{{ scope.row.paraJson.H_R_para }}</p>
                       </div>
                       <div class="line">
                         <p class="label">
                           初始感染点：
                         </p>
-                        <p>{{ scope.row.para_json.region_list }}</p>
+                        <p>{{ scope.row.paraJson.region_list }}</p>
                       </div>
                       <div class="line">
                         <p class="label">
                           初始感染人数：
                         </p>
-                        <p>{{ scope.row.para_json.I_input }}</p>
+                        <p>{{ scope.row.paraJson.I_input }}</p>
                       </div>
                       <div class="line" v-if="scope.row.lockType === 1">
                         <p class="label">
                           封锁区域：
                         </p>
-                        <p>{{ scope.row.para_json.lock_area }}</p>
+                        <p>{{ scope.row.paraJson.lock_area }}</p>
                       </div>
                       <div class="line" v-if="scope.row.lockType === 1">
                         <p class="label">
                           封锁时长：
                         </p>
-                        <p>{{ scope.row.para_json.lock_day }}</p>
+                        <p>{{ scope.row.paraJson.lock_day }}</p>
                       </div>
                     </div>
                     <i class="el-icon-view" slot="reference" style="margin-right: 5px;"></i>
@@ -100,7 +100,7 @@
               <el-table-column label="操作" width="80">
                 <template slot-scope="scope">
                   <el-button size="mini" type="text" icon="el-icon-plus" :disabled="scope.row.status !== 'finish'"
-                             @click="onAddInfectionChart(scope.row)">
+                             @click="updateInfectionChart(scope.row)">
                     添加
                   </el-button>
                 </template>
@@ -116,15 +116,15 @@
 </template>
 
 <script>
-import infectionSimulation from "@/views/simulator/components/infection/infectionSimulation-ol.vue";
+  import infectionSimulation from "@/views/simulator/components/infection/infectionSimulation-ol.vue";
 // 图表相关函数
-import *  as chartUtils from '@/views/application/chartUtils'
+  import *  as chartUtils from '@/views/application/chartUtils'
 // 后端请求相关函数
   import *  as requestUtils from '@/views/application/requestUtils'
   import store from "@/store"
 
 export default {
-  name: "stepB",
+  name: "stepC",
   props: {
     city: {
       type: String,
@@ -175,7 +175,8 @@ export default {
         console.log(this.userId);
       }).catch(() => { });
     },
-  mounted() {
+    mounted() {
+      console.log("Task received in stepC:", this.task);
     console.warn(this.task);
     this.loadTaskData(this.task);
     this.initChart();
@@ -192,7 +193,7 @@ export default {
       this.status = task;
       loading.close();
       this.loaded = true;
-
+      console.log(this.loaded);
     },
     initChart() {
       // 构建感染总人数折线图
@@ -200,13 +201,44 @@ export default {
       chartUtils.resizeChartBottom(this.chartInfection, 'chartInfection')
       this.chartInfection.showLoading()
       // 获取感染总人数数据并更新折线图
-      this.onAddInfectionChart(this.task);
+      //this.onAddInfectionChart(this.task);
     },
     // 添加传染病模拟任务到对比曲线中
-    onAddInfectionChart(task) {
+    onAddInfectionChart(res) {
+      // 获取感染总人数数据并更新折线图
+      console.log("步骤C被调用"+res);
+      let names = ['无管控措施', '人为管控措施', '强化学习动态管控措施']
+     
+        let num_times = Math.max(this.infectionPopulationData.yData.length, res.length)
+        this.infectionPopulationData.yData = []
+        for (let t = 1; t <= num_times; ++t) {
+          this.infectionPopulationData.yData.push(t)
+        }
+        let cityName = this.cityName;
+        let name = `任务${this.task.id}-${cityName}-${names[this.task.lockType]}`
+        console.log("步骤C的res：" + res);
+        this.infectionPopulationData.xData[name] = res
+        chartUtils.updateLineChart(this.chartInfection, this.infectionPopulationData)
+        this.chartInfection.hideLoading()
+      
+    },
+    updateInfectionChart(task) {
       // 获取感染总人数数据并更新折线图
       let names = ['无管控措施', '人为管控措施', '强化学习动态管控措施']
-      requestUtils.getInfectionTotalPopulation(this, task.lockType, task.simulation_time, false, (res) => {
+      console.log("新添任务" + task.simulationTime);
+      let fileName = task.simulationTime;
+      if (fileName) {
+        const date = new Date(fileName);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        // Format the date as 'YYYY-MM-DD_HH_MM_SS'
+        fileName = `${year}-${month}-${day}_${hours}_${minutes}_${seconds}`;
+      }
+      requestUtils.getInfectionTotalPopulation(this, task.lockType, fileName, false, (res) => {
         let num_times = Math.max(this.infectionPopulationData.yData.length, res.length)
         this.infectionPopulationData.yData = []
         for (let t = 1; t <= num_times; ++t) {
@@ -214,6 +246,7 @@ export default {
         }
         let cityName = this.cityName;
         let name = `任务${task.id}-${cityName}-${names[task.lockType]}`
+        console.log("步骤C的res：" + res);
         this.infectionPopulationData.xData[name] = res
         chartUtils.updateLineChart(this.chartInfection, this.infectionPopulationData)
         this.chartInfection.hideLoading()

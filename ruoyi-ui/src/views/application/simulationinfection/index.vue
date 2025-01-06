@@ -101,6 +101,7 @@ export default {
     onChangeTask(task) {
       this.task = task;
       this.taskId = task.id;
+      console.log(task);
     },
     // 根据拼音获取城市名
     getCityName(city) {

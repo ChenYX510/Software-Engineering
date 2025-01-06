@@ -919,6 +919,7 @@ export default {
     // 点击任务
     clickTask(task) {
       this.$emit("onChangeTask", task);
+      console.log("选择的任务:", task);
     },
     // 删除任务
     removeTask(task){

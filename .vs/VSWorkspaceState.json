@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\ruoyi-ui",
+    "\\ruoyi-ui\\src",
+    "\\ruoyi-ui\\src\\views",
+    "\\ruoyi-ui\\src\\views\\application",
+    "\\ruoyi-ui\\src\\views\\application\\simulationinfection",
+    "\\ruoyi-ui\\src\\views\\simulator",
+    "\\ruoyi-ui\\src\\views\\simulator\\components",
+    "\\ruoyi-ui\\src\\views\\simulator\\components\\infection"
+  ],
+  "SelectedNode": "\\ruoyi-ui\\src\\views\\simulator\\serverInfo.js",
+  "PreviewInSolutionExplorer": false
+}

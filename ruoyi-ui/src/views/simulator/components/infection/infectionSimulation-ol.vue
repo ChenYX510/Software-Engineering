@@ -363,12 +363,12 @@
                   </el-table-column>
                   <el-table-column label="模拟总时长" align="center" :show-overflow-tooltip="true" width="100">
                     <template slot-scope="scope">
-                      <span>{{ scope.row.para_json.simulation_days * 24 }}</span>
+                      <span>{{ scope.row.paraJson.simulation_days * 24 }}</span>
                     </template>
                   </el-table-column>
                   <el-table-column label="基本繁殖数" align="center" :show-overflow-tooltip="true" width="100">
                     <template slot-scope="scope">
-                      <span>{{ scope.row.para_json.R0 }}</span>
+                      <span>{{ scope.row.paraJson.R0 }}</span>
                     </template>
                   </el-table-column>
                   <el-table-column property="status" label="状态" width="50">
@@ -419,7 +419,7 @@
                 `(${popInfo.coords[0][0].toFixed(3)},${popInfo.coords[0][1].toFixed(3)})`
               }}
             </p>
-            <p v-show="!showLayers.policy" style="color:#000"><strong>人数：</strong>{{
+            <p v-show="!showLayers.policy" style="color:#000"><strong>感染人数：</strong>{{
                 popInfo.value.toFixed(0)
               }}
             </p>
@@ -585,7 +585,8 @@ import { Fill, Stroke, Style } from 'ol/style.js';
 import CircleStyle from "ol/style/Circle";
 
 import * as mapUtils from '@/views/application/mapUtils';
-import * as requestUtils from '@/views/application/requestUtils';
+  import * as requestUtils from '@/views/application/requestUtils';
+  import store from "@/store"
 
 
 
@@ -728,6 +729,7 @@ function addMapEventListener(bindThis) {
   });
   that.map.addOverlay(popup);
 
+  //这里应该是点击网格显示数据的
   that.map.on('click', function (event) {
     let click = null;
     that.map.forEachFeatureAtPixel(event.pixel, function (f) {
@@ -738,6 +740,9 @@ function addMapEventListener(bindThis) {
         that.popInfo = f.info;
         that.popInfo.feature = f;
         click = f;
+        that.popInfo.coords = that.popInfo.coords[0];
+        console.log(that.popInfo);
+
         setTimeout(() => {
           that.$refs.mapInfoPopover.showPopper = true;
         }, 100);
@@ -1162,6 +1167,7 @@ export default {
   name: "infection",
   data() {
     return {
+      userId: store.state.user.id,
       city: "guangzhou",
 
       // gama模拟
@@ -1328,6 +1334,9 @@ export default {
     taskList: {
       type: Array,
     },
+    callFunction: {
+      type: Function,
+    },
   },
   watch: {
     status() {
@@ -1335,7 +1344,26 @@ export default {
         this.onStatusChange();
       }
     },
-  },
+    },
+    created() {
+      this.$store.dispatch("GetInfo").then(() => {
+        console.log("infectionSimulation-ol获取用户信息成功");
+        console.log(this.userId);
+      }).catch(() => { });
+      if (this.status && this.status.simulationTime) {
+        // Assuming simulationTime is a Date object or a string that can be parsed into a Date
+        const date = new Date(this.status.simulationTime);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        // Format the date as 'YYYY-MM-DD_HH_MM_SS'
+        this.status.simulationTime = `${year}-${month}-${day}_${hours}_${minutes}_${seconds}`;
+      }
+    },
   mounted() {
     echarts.registerTheme('customed', echartTheme);
     if (this.type == "infection") {
@@ -1343,7 +1371,11 @@ export default {
     }
   },
   methods: {
+    updateChat(data) {
+      this.callFunction(data);
+    },
     async onStatusChange() {
+      console.log("进入函数");
       if (this.map) {
         this.map.setTarget(null);
         this.map = null;
@@ -1396,10 +1428,13 @@ export default {
 
         // 获取任务信息
         this.infectionTaskInfo = this.status;
-        this.taskParams = this.status.para_json;
+        console.log("status"+this.status);
+        this.taskParams = this.status.paraJson;
         this.maxInfectionDay = this.taskParams.simulation_days;
         this.lockType = this.status.lockType;
         this.hasPolicy = false;
+
+        console.log("变量重置前");
 
         // 变量重置
         this.currentInfectionDay = 1;
@@ -1420,9 +1455,12 @@ export default {
         if (this.lockType === 1)
           mapUtils.buildLockLayer(this, this.taskParams);
         addMapEventListener(this);
-        requestUtils.getInfectionGrid(this, true, () => {
+
+        console.log("获取网格" + this.status.simulationTime);
+
+        requestUtils.getInfectionGrid(this, this.userId, true, () => {
           // 获取模拟结果
-          requestUtils.getInfectionSimulationResult(this, this.currentInfectionDay, this.currentInfectionHour, this.status.simulation_time, this.lockType,
+          requestUtils.getInfectionSimulationResult(this, this.userId, this.currentInfectionDay, this.currentInfectionHour, this.status.simulationTime, this.lockType,
             () => {
               this.showLoading = false;
               let colorMap = 1;
@@ -1435,15 +1473,15 @@ export default {
           // 获取控制策略结果
           if (this.lockType === 1) return;  // 手动封控
           let policyFileName;
-          if (this.lockType !== 2) policyFileName = this.status.simulation_time;
-          else policyFileName = this.status.para_json.simulation_time;
+          if (this.lockType !== 2) policyFileName = this.status.simulationTime;
+          else policyFileName = this.status.paraJson.simulation_time;
           requestUtils.getGridControlPolicy(this, this.currentInfectionDay, this.currentInfectionHour, policyFileName, (data) => {
             this.hasPolicy = true;
             mapUtils.updateInfectionLayer(this.currentInfectionPolicySource, data, 0);
           })
         });
-        requestUtils.getInfectionTotalPopulation(this, this.lockType, this.status.simulation_time, true);
-
+        requestUtils.getInfectionTotalPopulation(this, this.lockType, this.status.simulationTime, true);
+        this.callFunction(this.totalPopulation);
       }
       else if (this.infectionModel == "maddpg") {
         this.imgData1 = this.status.imgData1;
@@ -1823,7 +1861,7 @@ export default {
     },
     // 生成强化学习模拟决策
     onUpdateMADDPG() {
-      requestUtils.MADDPGSimultion(this, this.status.simulation_time);
+      requestUtils.MADDPGSimultion(this, this.status.simulationTime);
     },
     // 切换传染病网格显示
     onInfectionShowChange() {
@@ -1837,7 +1875,7 @@ export default {
             this.infectionResultData[key][this.currentInfectionShowType], colorMap);
         }
         else {
-          requestUtils.getInfectionSimulationResult(this, this.currentInfectionDay, this.currentInfectionHour, this.status.simulation_time, this.lockType,
+          requestUtils.getInfectionSimulationResult(this, this.userId, this.currentInfectionDay, this.currentInfectionHour, this.status.simulationTime, this.lockType,
             () => {
               mapUtils.updateInfectionLayer(this.currentInfectionGridSource,
                 this.infectionResultData[key][this.currentInfectionShowType], colorMap);
@@ -1846,8 +1884,8 @@ export default {
       }
       if (this.hasPolicy && this.currentInfectionPolicyLayer) {
         let policyFileName;
-        if (this.lockType !== 2) policyFileName = this.status.simulation_time;
-        else policyFileName = this.status.para_json.simulation_time;
+        if (this.lockType !== 2) policyFileName = this.status.simulationTime;
+        else policyFileName = this.status.paraJson.simulation_time;
         requestUtils.getGridControlPolicy(this, this.currentInfectionDay, this.currentInfectionHour, policyFileName, (data) => {
           mapUtils.updateInfectionLayer(this.currentInfectionPolicySource, data, 0);
         })
@@ -1855,7 +1893,8 @@ export default {
     },
     // 更新感染高风险区域
     updateRiskPoint() {
-      requestUtils.getInfectionRiskPoint(this, this.currentInfectionDay, this.currentInfectionHour, this.status.simulation_time, this.thresholdInfected, this.lockType, () => {
+        console.log("更新感染高风险区域");
+        requestUtils.getInfectionRiskPoint(this, this.userId, this.currentInfectionDay, this.currentInfectionHour, this.status.simulationTime, this.thresholdInfected, this.lockType, () => {
         this.showLayers.grid = false;
         this.showLayers.risk = true;
         this.onDisplayChange();
@@ -1977,10 +2016,10 @@ export default {
         let simulation_types = ['none_type', 'lock_type', 'MADDPG_type'];
         let data = await ajaxInfection(`download_simulation_file?city=${this.city}` + `&simulation_day=${this.currentInfectionDay}` +
           `&simulation_hour=${this.currentInfectionHour}` + `&simulation_type=${simulation_types[this.status.lockType]}` +
-          `&simulation_file_name=${this.status.simulation_time}`
+          `&simulation_file_name=${this.status.simulationTime}`
         );
         let blob = new Blob([data], { type: "text/plain;charset=utf-8" });
-        saveAs(blob, `infection_${this.city}_${this.status.simulation_time}_day${this.currentInfectionDay}_hour${this.currentInfectionHour}.csv`);
+        saveAs(blob, `infection_${this.city}_${this.status.simulationTime}_day${this.currentInfectionDay}_hour${this.currentInfectionHour}.csv`);
       }
       catch {
         this.$message({

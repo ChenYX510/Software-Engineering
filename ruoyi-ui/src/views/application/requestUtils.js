@@ -440,7 +440,7 @@ export function submitFloodSimulation(bindThis,callback) {
 }
 
 // 获取传染病网格
-export function getInfectionGrid(bindThis, useInfectionPolicy, callback) {
+export function getInfectionGrid(bindThis, userId, useInfectionPolicy, callback) {
     const that = bindThis;
 
     // let port = "80";
@@ -453,7 +453,8 @@ export function getInfectionGrid(bindThis, useInfectionPolicy, callback) {
         timeout: 16000000,
     });
     let formData = new FormData();
-    formData.append("city", that.city)
+  formData.append("city", that.city)
+  formData.append("userId", userId)
 
     service
         .post('/get_grid_shp', formData, { headers: headers })
@@ -695,7 +696,7 @@ export function inquireCityInfectionSimulation(bindThis, lockType = 0, callback 
 }
 
 // 获取传染病模拟结果
-export function getInfectionSimulationResult(bindThis, day, hour, fileName, lockType, callback) {
+export function getInfectionSimulationResult(bindThis, userId, day, hour, fileName, lockType, callback) {
     const that = bindThis;
 
     let headers = {
@@ -715,24 +716,31 @@ export function getInfectionSimulationResult(bindThis, day, hour, fileName, lock
         formData.append("date", day);
         formData.append("time", hour);
     }
-    formData.append("simulation_file_name",fileName);
+  formData.append("simulation_file_name", fileName);
+  formData.append("user_id", userId);
 
     let url;
-    if (lockType === 0)
-        url = '/get_simulation_result';
-    else if (lockType === 1)
+  if (lockType === 0) {
+    console.log("调取接口111111" + fileName);
+    url = '/get_simulation_result';
+  } else if (lockType === 1)
         url = '/get_lock_simulation_result';
     else if (lockType === 2)
-        url = '/get_MADDPG_simulation_result';
+    url = '/get_MADDPG_simulation_result';
+
+  console.log(formData.get("simulation_file_name"));
+  console.log(formData.get("simulation_hour"));
 
     service
         .post(url, formData, { headers: headers })
         .then((res) => {
-            if (res.data.state === "current task completed" || res.data.state === "all tasks completed") {
-                // that.$message({
-                //     message: `获取第${day}天第${hour}时刻的传染病模拟结果成功`,
-                //     type: "success",
-                // });
+          console.log(res.data.state);
+          if (res.data.state === "current task completed" || res.data.state === "all tasks completed") {
+            console.log("成功！");
+                that.$message({
+                     message: `获取第${day}天第${hour}时刻的传染病模拟结果成功`,
+                     type: "success",
+                 });
                 that.infectionResultData[`${day}_${hour}`] = res.data;
                 that.infection_num_result = res.data.num_result;
                 if (callback) {
@@ -740,16 +748,16 @@ export function getInfectionSimulationResult(bindThis, day, hour, fileName, lock
                 }
             }
             else if (res.data.state === "not completed") {
-                // that.$message({
-                //     message: `第${day}天第${hour}时刻的传染病模拟未完成`,
-                //     type: "warning",
-                // });
+                 that.$message({
+                     message: `第${day}天第${hour}时刻的传染病模拟未完成`,
+                     type: "warning",
+                 });
             }
             else if (res.data.state === "no simulationTask") {
-                // that.$message({
-                //     message: "没有该城市的传染病模拟任务，请提交任务",
-                //     type: "warning",
-                // });
+                 that.$message({
+                     message: "没有该城市的传染病模拟任务，请提交任务",
+                     type: "warning",
+                 });
             }
             else {
                 that.$message({
@@ -768,7 +776,7 @@ export function getInfectionSimulationResult(bindThis, day, hour, fileName, lock
 }
 
 // 获取传染病模拟风险点
-export function getInfectionRiskPoint(bindThis, day, hour,fileName, threshold, lockType, callback) {
+export function getInfectionRiskPoint(bindThis, userId, day, hour,fileName, threshold, lockType, callback) {
     const that = bindThis;
 
     let headers = {
@@ -783,7 +791,8 @@ export function getInfectionRiskPoint(bindThis, day, hour,fileName, threshold, l
     formData.append("simulation_day", day);
     formData.append("simulation_hour", hour);
     formData.append("threshold_Infected", threshold);
-    formData.append("simulation_file_name",fileName);
+    formData.append("simulation_file_name", fileName);
+    formData.append("user_id", userId);
 
     let url;
     if (lockType === 0)
@@ -797,10 +806,10 @@ export function getInfectionRiskPoint(bindThis, day, hour,fileName, threshold, l
         .post(url, formData, { headers: headers })
         .then((res) => {
             if (res.data.msg === "success") {
-                // that.$message({
-                //     message: `获取第${day}天第${hour}的传染病模拟风险点成功`,
-                //     type: "success",
-                // });
+                that.$message({
+                     message: `获取第${day}天第${hour}的传染病模拟风险点成功`,
+                     type: "success",
+                 });
                 mapUtils.updateRiskLayer(that, res.data.result);
 
                 if (callback) {
@@ -835,27 +844,35 @@ export function getInfectionTotalPopulation(bindThis, lockType,fileName, store, 
         timeout: 16000000,
     });
     let formData = new FormData();
-  formData.append("city", that.city);
-  formData.append("userId", that.userId);
+    formData.append("city", that.city);
+    formData.append("userId", that.userId);
     if(fileName)
-        formData.append("simulation_file_name", fileName);
+        formData.append("simulationFileName", fileName);
 
     const urls = ['get_every_hour_infection', 'get_lock_every_hour_infection', 'get_MADDPG_every_hour_result'];
     let url = urls[lockType];
+    console.log("步骤C进入的用户id：" + that.userId);
+    console.log("步骤C进入的文件名：" + fileName);
+
+    console.log("请求的URL:", url);
+    console.log("请求的表单数据:", Array.from(formData.entries())); // 打印表单数据
 
     service
         .post(url, formData, { headers: headers })
         .then((res) => {
+            console.log("服务器响应:", res);
             if (res.data.result) {
                 // that.$message({
                 //     message: `获得每小时的感染总人数成功`,
                 //     type: "success",
-                // });
+              // });
                 res.data.result.forEach((item, index, arr) => {
                     arr[index] = item.toFixed(0);
                 })
                 if (store) {
-                    that.totalPopulation = res.data.result;
+                  that.totalPopulation = res.data.result;
+                  console.log(that.totalPopulation);
+                  that.callFunction(that.totalPopulation);
                 }
 
                 if (callback) {
@@ -987,6 +1004,7 @@ export function getGridControlPolicy(bindThis, day, time, fileName, callback) {
         time_map += 4;
     }
     formData.append("policy_time", time_map);
+    formData.append("userId", that.userId);
     if(fileName)
         formData.append("simulation_file_name",fileName);
 
