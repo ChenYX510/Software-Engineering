@@ -792,7 +792,15 @@ export default {
           for (let key in this.infectionParamBefore) {
             formData_lock.append(key, this.infectionParamBefore[key]);
           }
-          this.submitInfectionBefore(formData_lock, true);
+          // 将 FormData 转换为普通对象
+          let formDataObject_lock = {};
+          formData_lock.forEach((value, key) => {
+            formDataObject_lock[key] = value;
+          });
+
+          // 将对象转换为 JSON 字符串
+          let formDataString_lock = JSON.stringify(formDataObject_lock);
+          this.submitInfectionBefore(formDataString_lock, true);
         }
 
 

@@ -1014,10 +1014,10 @@ export function getGridControlPolicy(bindThis, day, time, fileName, callback) {
         .post(url, formData, { headers: headers })
         .then((res) => {
             if (res.data.quota) {
-                // that.$message({
-                //     message: "获取强化学习传染病人口流动性控制结果成功",
-                //     type: "success",
-                // });
+                 that.$message({
+                     message: "获取强化学习传染病人口流动性控制结果成功",
+                     type: "success",
+                 });
                 if (callback) callback(res.data.quota);
             }
             else {
@@ -1041,46 +1041,53 @@ export function getGridControlPolicy(bindThis, day, time, fileName, callback) {
 
 // 提交强化学习策略下的模拟任务
 export function MADDPGSimultion(bindThis, fileName, callback) {
-    const that = bindThis;
+  const that = bindThis;
 
-    let headers = {
-        "Content-Type": "multipart/form-data",
-    };
-    const service = axios.create({
-        baseURL: serverInfo.baseURL_infection,
-        timeout: 16000000,
-    });
-    let formData = new FormData();
-    formData.append("city", that.city);
-    if(fileName)
-        formData.append("simulation_file_name",fileName);
+  // 设置请求头为 JSON 格式
+  let headers = {
+    "Content-Type": "application/json",
+  };
 
-    let url = 'MADDPG_simulation';
+  const service = axios.create({
+    baseURL: serverInfo.baseURL_infection,
+    timeout: 16000000,
+  });
 
-    service
-        .post(url, formData, { headers: headers })
-        .then((res) => {
-            if (res.data.status === true) {
-                that.$message({
-                    message: "强化学习策略下的模拟任务生成成功",
-                    type: "success",
-                });
-                if (callback) callback();
-            }
-            else {
-                that.$message({
-                    message: res.data.msg,
-                    type: "warning",
-                });
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-            that.$message({
-                message: "强化学习策略下的模拟任务生成失败",
-                type: "error",
-            });
+  // 构造 requestBody 对象
+  let requestBody = {
+    simulationCity: that.city,
+    userId: that.userId,
+  };
+
+  if (fileName) {
+    requestBody.simulationFileName = fileName;
+  }
+
+  let url = 'MADDPG_simulation';
+
+  service
+    .post(url, requestBody, { headers: headers }) // 传递 JSON 数据
+    .then((res) => {
+      if (res.data.status === true) {
+        that.$message({
+          message: "强化学习策略下的模拟任务生成成功",
+          type: "success",
         });
+        if (callback) callback();
+      } else {
+        that.$message({
+          message: res.data.msg,
+          type: "warning",
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      that.$message({
+        message: "强化学习策略下的模拟任务生成失败",
+        type: "error",
+      });
+    });
 }
 
 

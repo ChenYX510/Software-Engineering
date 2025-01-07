@@ -2014,9 +2014,9 @@ export default {
     async downloadResultBefore() {
       try {
         let simulation_types = ['none_type', 'lock_type', 'MADDPG_type'];
-        let data = await ajaxInfection(`download_simulation_file?city=${this.city}` + `&simulation_day=${this.currentInfectionDay}` +
-          `&simulation_hour=${this.currentInfectionHour}` + `&simulation_type=${simulation_types[this.status.lockType]}` +
-          `&simulation_file_name=${this.status.simulationTime}`
+        let data = await ajaxInfection(`download_simulation_file?city=${this.city}` + `&simulationDay=${this.currentInfectionDay}` +
+          `&simulationHour=${this.currentInfectionHour}` + `&simulationType=${simulation_types[this.status.lockType]}` +
+          `&simulationFileName=${this.status.simulationTime}` + `&userId=${this.userId}`
         );
         let blob = new Blob([data], { type: "text/plain;charset=utf-8" });
         saveAs(blob, `infection_${this.city}_${this.status.simulationTime}_day${this.currentInfectionDay}_hour${this.currentInfectionHour}.csv`);
