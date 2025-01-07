@@ -15,143 +15,50 @@
               <!-- 设置疫情数据 -->
               <div style="margin-bottom: 20px;">
                 <el-form-item label="模拟方式:">
-                  <span>传染病灾前模拟</span>
+                  <span>传染病灾情发展模拟</span>
                 </el-form-item>
-                <!-- 设置传染病灾前模拟 -->
-                <div v-show="infectionModel == 'before'">
-                  <el-form-item label="初始感染点列表：">
-                    <el-popover placement="right" width="400" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>初始情况下感染人群的位置和人数，请点击“修改”按钮后在地图上添加</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <el-table :data="initInfectionList" max-height="200" size="mini"
-                              :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }">
-                      <el-table-column property="id" label="序号" width="100"></el-table-column>
-                      <el-table-column property="population" label="感染人数" width="140">
-                        <template slot-scope="scope">
-                          <el-input-number v-model="scope.row.population" style="width:120px;" :min="1" :max="20"
-                                           :precision="0" :step="1" size="small"></el-input-number>
-                        </template>
-                      </el-table-column>
-                      <el-table-column property="position" label="位置">
-                        <template slot-scope="scope">
-                          <span>{{
-                              `[${scope.row.position[0].toFixed(3)},${scope.row.position[1].toFixed(3)}]`
-                            }}</span>
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                    <div style="width: 100%;display: flex;flex-direction: row;justify-content: end;">
-                      <el-button type="primary" size="small" style="margin: 10px;" @click="showInfectionInput = true"
-                                 plain>修改</el-button>
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="是否封锁区域:">
-                    <el-popover placement="right" width="400" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>对选定的区域封锁一段时间，进行传染病模拟</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <el-switch v-model="useLockInfection" active-text="是" inactive-text="否" style="margin-left: 10px;">
-                    </el-switch>
-                  </el-form-item>
-                  <el-form-item label="封锁区域列表：" v-show="useLockInfection">
-                    <el-table :data="lockInfectionList" max-height="200" size="mini"
-                              :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }">
-                      <el-table-column property="id" label="序号" width="100"></el-table-column>
-                      <el-table-column property="gid" label="网格序号" width="80"></el-table-column>
-                      <el-table-column label="封锁时长(天)" width="140">
-                        <template slot-scope="scope">
-                          <span>{{ infectionLockDay }}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column property="position" label="位置">
-                        <template slot-scope="scope">
-                          <span>{{
-                              `[${scope.row.position[0].toFixed(3)},${scope.row.position[1].toFixed(3)}]`
-                            }}</span>
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                    <div style="width: 100%;display: flex;flex-direction: row;justify-content: end;">
-                      <el-button type="primary" size="small" style="margin: 10px;" @click="showInfectionLock = true"
-                                 plain>修改</el-button>
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="配置:">
-                    <el-popover placement="right" width="400" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>提供了一些常见类型传染病的参数</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <el-select v-model="infectionParamConfig" @change="onInfectionConfigChange">
-                      <el-option v-for="(name, config) in infectionConfigOptions" :label="name" :key="config"
-                                 :value="config"></el-option>
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item label="传染病基本繁殖数:">
-                    <el-popover placement="right" width="400" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>传染病基本繁殖数(R0)：在没有外力介入，所有人都没有免疫力的情况下，一个感染传染病的人，会传染给其他多少个人的平均数</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <!-- <el-input v-model="infectionParamBefore['R0']" placeholder="请输入内容"
-                    :disabled="infectionParamConfig != 'custom'"></el-input> -->
-                    <el-input-number v-model="infectionParamBefore['R0']" :min="0" :controls="false"
-                                     :disabled="infectionParamConfig != 'custom'"></el-input-number>
-                  </el-form-item>
-                  <el-form-item label="感染后住院率:">
+                <!-- 设置传染病灾后模拟预测 -->
+                <div v-show="infectionModel == 'after'">
+                  <el-form-item label="设置感染后住院率:">
                     <el-popover placement="right" width="300" trigger="hover">
                       <p class="helpTitle">参数说明</p>
                       <p>单位时间内每个被感染的患者住院的概率(I_H_para)</p>
                       <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
                     </el-popover>
-                    <!-- <el-input v-model="infectionParamBefore['I_H_para']" placeholder="请输入内容"></el-input> -->
-                    <el-input-number v-model="infectionParamBefore['I_H_para']" :min="0" :max="1"
+                    <!-- <el-input v-model="infectionParamAfter['I_H_para']" placeholder="请输入内容"></el-input> -->
+                    <el-input-number v-model="infectionParamAfter['I_H_para']" :min="0" :max="1"
                                      :controls="false"></el-input-number>
                   </el-form-item>
-                  <el-form-item label="感染后自愈率:">
+                  <el-form-item label="设置感染后自愈率:">
                     <el-popover placement="right" width="300" trigger="hover">
                       <p class="helpTitle">参数说明</p>
                       <p>单位时间内每个被感染的患者自愈的概率(I_R_para)</p>
                       <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
                     </el-popover>
-                    <!-- <el-input v-model="infectionParamBefore['I_R_para']" placeholder="请输入内容"></el-input> -->
-                    <el-input-number v-model="infectionParamBefore['I_R_para']" :min="0" :max="1"
+                    <!-- <el-input v-model="infectionParamAfter['I_R_para']" placeholder="请输入内容"></el-input> -->
+                    <el-input-number v-model="infectionParamAfter['I_R_para']" :min="0" :max="1"
                                      :controls="false"></el-input-number>
                   </el-form-item>
-                  <el-form-item label="住院后治愈率:">
+                  <el-form-item label="设置住院后治愈率:">
                     <el-popover placement="right" width="300" trigger="hover">
                       <p class="helpTitle">参数说明</p>
                       <p>单位时间内每个住院的患者治愈的概率(H_R_para)</p>
                       <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
                     </el-popover>
-                    <!-- <el-input v-model="infectionParamBefore['H_R_para']" placeholder="请输入内容"></el-input> -->
-                    <el-input-number v-model="infectionParamBefore['H_R_para']" :min="0" :max="1"
+                    <!-- <el-input v-model="infectionParamAfter['H_R_para']" placeholder="请输入内容"></el-input> -->
+                    <el-input-number v-model="infectionParamAfter['H_R_para']" :min="0" :max="1"
                                      :controls="false"></el-input-number>
                   </el-form-item>
-                  <el-form-item label="模拟总天数:">
-                    <el-popover placement="right" width="300" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>该任务模拟传染病发生后的总天数</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <!-- <el-input v-model="infectionParamBefore['simulation_days']" placeholder="请输入内容"></el-input> -->
-                    <el-input-number v-model="infectionParamBefore['simulation_days']" :min="0" :precision="0"
-                                     :controls="false"></el-input-number>
-                  </el-form-item>
-                  <el-form-item label="是否同时提交无管控措施任务:" v-show="useLockInfection">
-                    <el-popover placement="right" width="400" trigger="hover">
-                      <p class="helpTitle">参数说明</p>
-                      <p>是则同时提交两个任务，一个使用管控措施一个不使用管控措施，其他参数相同</p>
-                      <i class="el-icon-question" slot="reference" style="margin-right: 5px;"></i>
-                    </el-popover>
-                    <el-switch v-model="sumbitBothTask" active-text="是" inactive-text="否" style="margin-left: 10px;">
-                    </el-switch>
+                  <el-form-item label="每日新增感染人数文件:">
+                    <el-upload name="file" :auto-upload="false" :on-change="uploadSeirPopulationXlsx"
+                               :file-list="infectionParamAfter['file']" action="">
+                      <i class="el-icon-upload"></i>
+                      <div class="el-upload__tip" slot="tip">
+                        模拟时期每日新增感染人数的xlsx文件
+                      </div>
+                    </el-upload>
                   </el-form-item>
                 </div>
-
               </div>
 
               <!-- 操作 -->
@@ -291,7 +198,7 @@ export default {
       area: [],
       // 任务类型
       type: "infection",
-      infectionModel: "before",
+      infectionModel: "after",
       userId: store.state.user.id,
       typeNames: {
         'flood': '暴雨洪涝',

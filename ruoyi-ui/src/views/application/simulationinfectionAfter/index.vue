@@ -31,7 +31,6 @@ import stepA from "./stepA.vue";
 import stepB from "./stepB.vue";
 import stepC from "./stepC.vue";
 
-
 import mapData from '@/views/simulator/components/mapData';   //导入城市名数据
 
 export default {
